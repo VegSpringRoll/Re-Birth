@@ -515,7 +515,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                   <label className="text-[10px] sm:text-[11px] font-mono text-cyan-300 uppercase font-semibold block mb-1">
                     Enter ANY Anime / LN / Movie / Series / Game
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       placeholder="e.g. Chainsaw Man, Mushoku Tensei, Re:Zero, Elden Ring…"
@@ -524,17 +524,17 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                         setCustomUniverseTitle(e.target.value);
                         setCustomBriefingError('');
                       }}
-                      className="flex-1 bg-black/50 border border-purple-500/25 rounded-xl px-3 py-2.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                      className="flex-1 min-w-0 bg-black/50 border border-purple-500/25 rounded-xl px-3 py-2.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
                     />
                     <button
                       type="submit"
                       disabled={!customUniverseTitle.trim() || customBriefingLoading}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-40 shrink-0 active:scale-95"
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-40 shrink-0 active:scale-95 touch-manipulation"
                     >
                       {customBriefingLoading ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span className="hidden xs:inline">Briefing…</span>
+                          <span>Briefing…</span>
                         </>
                       ) : (
                         <>

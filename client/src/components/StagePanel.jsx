@@ -328,8 +328,8 @@ export default function StagePanel({
         }}
       />
 
-      {/* Stage Top Bar (Hidden on mobile when 0 messages to avoid clutter) */}
-      <div className={`px-3 sm:px-5 py-2 sm:py-2.5 border-b border-white/[0.07] bg-[#080b1a]/80 backdrop-blur-2xl items-center justify-between shrink-0 z-10 shadow-md ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
+      {/* Stage Top Bar (Desktop Only - hidden on mobile to maximize chat space and eliminate duplicate bar) */}
+      <div className="hidden md:flex px-3 sm:px-5 py-2 sm:py-2.5 border-b border-white/[0.07] bg-[#080b1a]/80 backdrop-blur-2xl items-center justify-between shrink-0 z-10 shadow-md">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <div className="relative shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block shadow-sm shadow-emerald-400" />

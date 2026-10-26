@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   Plus,
@@ -57,7 +58,7 @@ export default function Navbar({
   }, []);
 
   return (
-    <header className="h-[60px] border-b border-white/[0.07] bg-[#080b1a]/95 backdrop-blur-2xl px-3 sm:px-6 flex items-center justify-between shrink-0 z-40 shadow-lg shadow-black/60 select-none">
+    <header className="h-[60px] border-b border-white/[0.07] bg-[#080b1a]/95 backdrop-blur-2xl px-3 sm:px-6 flex items-center justify-between shrink-0 z-50 shadow-lg shadow-black/60 select-none">
       {/* ─── LEFT: Brand & Desktop Quick Selectors / Mobile World Chip ─── */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         {/* Brand */}
@@ -263,8 +264,8 @@ export default function Navbar({
       </div>
 
       {/* ─── MOBILE HAMBURGER MENU DRAWER (Holds Persona, Settings, Universe, Chronicles) ─── */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-[80] flex justify-end bg-black/80 backdrop-blur-md animate-fade-in">
+      {mobileMenuOpen && typeof document !== 'undefined' && createPortal(
+        <div className="md:hidden fixed inset-0 z-[100] flex justify-end bg-black/80 backdrop-blur-md animate-fade-in">
           {/* Backdrop Tap to Close */}
           <div className="flex-1" onClick={() => setMobileMenuOpen(false)} />
 
@@ -484,7 +485,8 @@ export default function Navbar({
               </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );
