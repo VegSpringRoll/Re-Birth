@@ -532,6 +532,11 @@ export default function App() {
           onDeletePinnedMemory={handleDeletePinnedMemory}
           isMobileOpen={isLeftPanelOpenMobile}
           onCloseMobile={() => setIsLeftPanelOpenMobile(false)}
+          sessions={sessions}
+          currentSessionId={currentSessionId}
+          onSelectSession={loadSession}
+          onOpenWorldForge={() => setIsWorldForgeOpen(true)}
+          onDeleteSession={handleDeleteSession}
         />
 
         {/* Center Panel: The Roleplay Stage */}

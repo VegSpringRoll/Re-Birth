@@ -21,7 +21,9 @@ import {
   BookOpen,
   Heart,
   Shield,
-  Swords
+  Swords,
+  Archive,
+  Plus,
 } from 'lucide-react';
 import AvatarImage from './AvatarImage.jsx';
 
@@ -96,8 +98,14 @@ export default function LeftPanel({
   onDeletePinnedMemory,
   isMobileOpen,
   onCloseMobile,
+  sessions = [],
+  currentSessionId,
+  onSelectSession,
+  onOpenWorldForge,
+  onDeleteSession,
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [showChronicleList, setShowChronicleList] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const [memoriesExpanded, setMemoriesExpanded] = useState(false);
   const [activeNpcsExpanded, setActiveNpcsExpanded] = useState(true);
@@ -246,6 +254,97 @@ export default function LeftPanel({
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-safe">
+        {/* Active Universe & Chronicle Switcher Hub */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900/90 via-[#0d122b]/80 to-purple-950/40 border border-purple-500/25 shadow-lg space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-purple-300 font-mono uppercase font-bold tracking-wider flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Realm &amp; Chronicles Hub</span>
+            </span>
+            <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-full bg-purple-900/60 border border-purple-700/50 text-purple-300 font-bold">
+              {sessions.length} Saved
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (isMobileOpen && onCloseMobile) onCloseMobile();
+                onOpenWorldForge?.();
+              }}
+              className="py-2 px-2.5 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              title="Open Universe Selector / Create New Roleplay"
+            >
+              <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <span className="truncate font-bold">Universe</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowChronicleList(!showChronicleList)}
+              className="py-2 px-2.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-sm"
+              title="Switch roleplay chronicles"
+            >
+              <Archive className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              <span className="truncate font-bold">Switch RP</span>
+              <ChevronDown className={`w-3 h-3 text-purple-400 transition-transform ${showChronicleList ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* Quick Chronicle List */}
+          {showChronicleList && (
+            <div className="space-y-1.5 pt-2 border-t border-purple-500/20 max-h-56 overflow-y-auto pr-0.5 animate-fade-in">
+              <div className="flex items-center justify-between text-[10px] font-mono text-purple-300/80 pb-1">
+                <span>Select a chronicle to load:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isMobileOpen && onCloseMobile) onCloseMobile();
+                    onOpenWorldForge?.();
+                  }}
+                  className="text-cyan-400 font-bold hover:underline flex items-center gap-0.5"
+                >
+                  <Plus className="w-3 h-3" /> New
+                </button>
+              </div>
+              {sessions.length === 0 && (
+                <p className="text-[11px] text-slate-400 font-mono py-2 text-center">
+                  No saved chronicles yet.
+                </p>
+              )}
+              {sessions.map((s) => {
+                const isCurrent = s._id === currentSessionId;
+                return (
+                  <div
+                    key={s._id}
+                    onClick={() => {
+                      onSelectSession?.(s._id);
+                      if (isMobileOpen && onCloseMobile) onCloseMobile();
+                    }}
+                    className={`p-2.5 rounded-xl text-xs flex items-center justify-between cursor-pointer border transition-all active:scale-[0.99] ${
+                      isCurrent
+                        ? 'bg-purple-900/60 border-purple-400 text-white font-bold shadow-md shadow-purple-950/60'
+                        : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-white/10'
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="truncate font-semibold text-slate-100">{s.title}</p>
+                      <p className="text-[10px] text-purple-300/80 font-mono truncate mt-0.5">
+                        {s.universe || 'Anime Realm'} &bull; {new Date(s.updatedAt || s.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    {isCurrent && (
+                      <span className="text-[9px] font-mono text-cyan-300 font-bold px-1.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-700/50 shrink-0">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         {isEditing ? (
           /* Manual Edit Mode */
           <div className="space-y-3 p-3.5 rounded-2xl bg-purple-950/20 border border-purple-500/30 text-xs animate-fade-in">

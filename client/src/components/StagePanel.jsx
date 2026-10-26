@@ -379,15 +379,15 @@ export default function StagePanel({
         </div>
       </div>
 
-      {/* Mobile Scene HUD & World Matrix Banner (One-Tap Access to LeftPanel) */}
-      {session && onToggleLeftPanel && (
-        <button
-          type="button"
-          onClick={onToggleLeftPanel}
-          className="md:hidden w-full px-3.5 py-2 bg-gradient-to-r from-purple-950/80 via-slate-900/95 to-cyan-950/80 border-b border-purple-500/30 flex items-center justify-between text-left shadow-lg active:scale-[0.99] transition-all group shrink-0"
-          title="Tap to open full World, NPCs & Timeline Matrix"
-        >
-          <div className="flex items-center gap-2 min-w-0">
+      {/* Mobile Scene HUD & World Matrix Banner (One-Tap Access to LeftPanel & Universe Selector) */}
+      {session && (
+        <div className="md:hidden w-full px-3 py-1.5 bg-gradient-to-r from-purple-950/90 via-slate-900/95 to-cyan-950/90 border-b border-purple-500/30 flex items-center justify-between shadow-lg shrink-0">
+          <button
+            type="button"
+            onClick={onToggleLeftPanel}
+            className="flex-1 min-w-0 flex items-center gap-2 text-left mr-2 active:opacity-80"
+            title="Tap to open World, NPCs & Timeline Matrix"
+          >
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-100 font-display truncate">
@@ -395,19 +395,39 @@ export default function StagePanel({
                 <span className="truncate">{worldState?.currentLocation || session?.title || 'World & Timeline Matrix'}</span>
               </div>
               <p className="text-[10px] text-purple-300/80 font-mono truncate">
-                {worldState?.currentTime || worldState?.weather || worldState?.currentArc || 'Live Matrix & Sector Tracker'}
+                {worldState?.universe ? `Universe: ${worldState.universe} • ` : ''}
+                {worldState?.currentTime || worldState?.weather || 'Live Sector Tracker'}
               </p>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-            <span className="px-2.5 py-1 rounded-full bg-cyan-950/90 border border-cyan-500/50 text-cyan-300 text-[10px] font-mono font-bold flex items-center gap-1 shadow-sm group-hover:border-cyan-400">
-              <Users className="w-3 h-3 text-cyan-400" />
-              <span>{worldState?.activeNPCs?.length || 0} NPCs</span>
-            </span>
-            <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-0.5 transition-transform" />
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onOpenWorldForge && (
+              <button
+                type="button"
+                onClick={onOpenWorldForge}
+                className="px-2 py-1 rounded-xl bg-cyan-950/90 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 text-[10px] font-mono font-bold flex items-center gap-1 active:scale-95 shadow-sm"
+                title="Universe Selector / Switch Realm"
+              >
+                <Globe className="w-3 h-3 text-cyan-400" />
+                <span>Universe</span>
+              </button>
+            )}
+
+            {onToggleLeftPanel && (
+              <button
+                type="button"
+                onClick={onToggleLeftPanel}
+                className="px-2 py-1 rounded-xl bg-purple-950/90 border border-purple-500/50 hover:border-purple-400 text-purple-200 text-[10px] font-mono font-bold flex items-center gap-1 active:scale-95 shadow-sm"
+                title="Open World, NPCs & Timeline Matrix"
+              >
+                <Users className="w-3 h-3 text-purple-400" />
+                <span>{worldState?.activeNPCs?.length || 0}</span>
+                <ChevronRight className="w-3.5 h-3.5 text-purple-300" />
+              </button>
+            )}
           </div>
-        </button>
+        </div>
       )}
 
       {/* Middle Stage Body: Chat Feed + Dedicated Character Stage Beside Chat */}
