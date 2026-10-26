@@ -6,7 +6,8 @@ import {
   X,
   Search,
   ExternalLink,
-  RotateCw
+  RotateCw,
+  ArrowLeft,
 } from 'lucide-react';
 import AvatarImage from './AvatarImage.jsx';
 
@@ -52,32 +53,43 @@ export default function CharacterStageSidePanel({
         <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
 
         {/* Panel Top Header: Character Identity & Close */}
-        <div className="relative z-10 pb-3 border-b border-white/[0.07] shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2.5 min-w-0">
+        <div className="relative z-10 pb-3 border-b border-white/[0.07] shrink-0 pt-safe">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            {/* Prominent Back to Roleplay Button */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-200 text-xs font-bold shadow-md active:scale-95 touch-manipulation shrink-0"
+              title="Return to Roleplay"
+            >
+              <ArrowLeft className="w-4 h-4 text-cyan-400" />
+              <span>Back to RP</span>
+            </button>
+
+            <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
+              <div className="min-w-0 text-right">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-100 font-display tracking-wide truncate">
+                  {character}
+                </h4>
+                <p className="text-[9.5px] font-mono text-purple-300/70 truncate">
+                  {universe || 'Scene Action'}
+                </p>
+              </div>
               <AvatarImage
                 speaker={character}
                 universe={universe}
                 size="sm"
-                className="w-8 h-8 rounded-full border border-cyan-400/50 shadow-md shrink-0"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-cyan-400/50 shadow-md shrink-0"
               />
-              <div className="min-w-0">
-                <h4 className="text-sm font-bold text-slate-100 font-display tracking-wide truncate">
-                  {character}
-                </h4>
-                <p className="text-[10px] font-mono text-purple-300/70 truncate">
-                  {universe || 'Anime Multiverse'}
-                </p>
-              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors touch-manipulation sm:hidden"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-
-            <button
-              onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
-              title="Close panel"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </div>
 
           {/* Action Badge & Search Bar */}
@@ -198,12 +210,23 @@ export default function CharacterStageSidePanel({
           )}
         </div>
 
-        {/* Panel Footer Info */}
-        <div className="relative z-10 pt-2 border-t border-white/[0.07] flex items-center justify-between text-[9px] font-mono text-slate-400">
-          <span>Engine: Yandex (SafeSearch: Off)</span>
-          {results.length > 0 && (
-            <span className="text-cyan-400">{results.length} found</span>
-          )}
+        {/* Panel Footer Info & Quick Return */}
+        <div className="relative z-10 pt-2 border-t border-white/[0.07] space-y-2">
+          <div className="flex items-center justify-between text-[9px] font-mono text-slate-400">
+            <span>Engine: Yandex (SafeSearch: Off)</span>
+            {results.length > 0 && (
+              <span className="text-cyan-400">{results.length} found</span>
+            )}
+          </div>
+          {/* Mobile Full-Width Return Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="sm:hidden w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 active:scale-95 touch-manipulation"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to Roleplay</span>
+          </button>
         </div>
       </aside>
 
@@ -217,25 +240,34 @@ export default function CharacterStageSidePanel({
             onClick={(e) => e.stopPropagation()}
             className="relative max-w-2xl w-full bg-slate-950 border border-cyan-500/40 rounded-3xl p-4 shadow-2xl overflow-hidden cursor-default animate-scale-up"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
-              <div className="flex items-center gap-2 min-w-0 pr-4">
-                <span className="text-sm font-bold text-slate-100 font-display">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setLightboxItem(null)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-white/20 text-slate-200 text-xs font-semibold hover:text-white active:scale-95 touch-manipulation shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Back</span>
+              </button>
+
+              <div className="flex items-center gap-2 min-w-0 flex-1 justify-center px-1">
+                <span className="text-sm font-bold text-slate-100 font-display truncate">
                   {character}
                 </span>
                 {action && (
-                  <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-800/40 px-2 py-0.5 rounded-full capitalize">
+                  <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/70 border border-cyan-800/40 px-2 py-0.5 rounded-full capitalize truncate hidden xs:inline">
                     {action}
                   </span>
                 )}
                 {lightboxItem.isGif && (
-                  <span className="text-[9px] font-mono text-pink-400 bg-pink-950/50 border border-pink-800/30 px-1.5 py-0.5 rounded-md uppercase font-bold">
+                  <span className="text-[9px] font-mono text-pink-400 bg-pink-950/50 border border-pink-800/30 px-1.5 py-0.5 rounded-md uppercase font-bold shrink-0">
                     GIF
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setLightboxItem(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                 title="Close"
               >
                 <X className="w-5 h-5" />

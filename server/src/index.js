@@ -63,4 +63,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// In Vercel serverless environment, do not bind port; export app instead
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;
