@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body, #root {
+    height: 100%;
+    height: 100dvh;
+    width: 100%;
+    overscroll-behavior-y: none;
+  }
+  
+  /* Custom scrollbar for cyber/anime dark mode */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(8, 10, 24, 0.7);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(139, 92, 246, 0.30);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 92, 246, 0.60);
+  }
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(10, 13, 30, 0.80);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(139, 92, 246, 0.14);
+}
+
+.glass-panel-elevated {
+  background: rgba(14, 18, 44, 0.90);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+}
+
+.glow-purple {
+  box-shadow: 0 0 28px -6px rgba(168, 85, 247, 0.25);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 28px -6px rgba(6, 182, 212, 0.25);
+}
+
+/* Star-field opening background dots */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.80; }
+}
+.star-dot {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+/* Slow pulse for badges */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Fade-in for cards */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
+}
+
+/* Streaming typing cursor */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink::after {
+  content: '▋';
+  display: inline-block;
+  margin-left: 1px;
+  animation: cursor-blink 0.7s step-end infinite;
+  color: rgba(139, 92, 246, 0.85);
+  font-size: 0.85em;
+}
+
+/* Safe area padding utilities for mobile devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
