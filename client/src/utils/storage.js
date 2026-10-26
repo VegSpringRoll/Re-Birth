@@ -155,78 +155,51 @@ export function saveStoredCustomProxyUrl(url) {
   } catch (e) {}
 }
 
-const DEFAULT_API_PROFILES = [
-  {
-    id: 'profile-groq-llama33',
-    name: 'Groq - Llama 3.3 70B (Ultra Fast)',
-    provider: 'groq',
-    model: 'llama-3.3-70b-versatile',
-    apiKey: '',
-  },
-  {
-    id: 'profile-mistral-large',
-    name: 'Mistral AI - Mistral Large',
-    provider: 'mistral',
-    model: 'mistral-large-latest',
-    apiKey: '',
-  },
-  {
-    id: 'profile-openrouter-claude',
-    name: 'OpenRouter - Claude 3.5 Sonnet',
-    provider: 'openrouter',
-    model: 'anthropic/claude-3.5-sonnet',
-    apiKey: '',
-  },
-  {
-    id: 'profile-gemini-pro',
-    name: 'Google Gemini - 1.5 Pro',
-    provider: 'gemini',
-    model: 'gemini-1.5-pro',
-    apiKey: '',
-  },
-  {
-    id: 'profile-openai-gpt4o',
-    name: 'OpenAI - GPT-4o',
-    provider: 'openai',
-    model: 'gpt-4o',
-    apiKey: '',
-  },
-  {
-    id: 'profile-custom-ollama',
-    name: 'Local Ollama Proxy (11434)',
-    provider: 'custom',
-    model: 'default',
-    apiKey: '',
-    customBaseUrl: 'http://localhost:11434/v1',
-  },
-  {
-    id: 'profile-custom-lmstudio',
-    name: 'LM Studio Proxy (1234)',
-    provider: 'custom',
-    model: 'default',
-    apiKey: '',
-    customBaseUrl: 'http://localhost:1234/v1',
-  },
+const DEFAULT_API_PROFILES = [];
+
+const DUMMY_PROFILE_IDS = [
+  'profile-groq-llama33',
+  'profile-mistral-large',
+  'profile-openrouter-claude',
+  'profile-gemini-pro',
+  'profile-openai-gpt4o',
+  'profile-custom-ollama',
+  'profile-custom-lmstudio',
 ];
 
 export function getStoredApiProfiles() {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.API_PROFILES);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify(DEFAULT_API_PROFILES));
-      return DEFAULT_API_PROFILES;
+      localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify([]));
+      return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_API_PROFILES;
+    if (!Array.isArray(parsed)) return [];
+    
+    // Purge unnecessary dummy profiles that have empty API keys
+    const cleanProfiles = parsed.filter(
+      (p) => p && !DUMMY_PROFILE_IDS.includes(p.id) || Boolean(p.apiKey?.trim())
+    );
+    
+    if (cleanProfiles.length !== parsed.length) {
+      localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify(cleanProfiles));
+    }
+    return cleanProfiles;
   } catch (e) {
-    return DEFAULT_API_PROFILES;
+    return [];
   }
 }
 
 export function saveStoredApiProfiles(profiles) {
   try {
-    localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify(profiles));
+    const cleanProfiles = Array.isArray(profiles)
+      ? profiles.filter((p) => p && (!DUMMY_PROFILE_IDS.includes(p.id) || Boolean(p.apiKey?.trim())))
+      : [];
+    localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify(cleanProfiles));
     window.dispatchEvent(new Event('rebirth_api_profiles_updated'));
+    // Auto-sync with MongoDB cloud
+    saveByokToMongoDB({ apiProfiles: cleanProfiles }).catch(() => {});
   } catch (e) {}
 }
 
@@ -243,4 +216,122 @@ export function saveActiveApiProfileId(id) {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, id);
     window.dispatchEvent(new Event('rebirth_api_profiles_updated'));
   } catch (e) {}
+}
+
+/**
+ * Syncs local BYOK settings & profiles with MongoDB Cloud
+ * This ensures that when accessing on mobile or another device,
+ * all saved API keys, models, and profiles automatically appear.
+ */
+export async function syncByokWithMongoDB() {
+  try {
+    const res = await fetch('/api/settings/byok');
+    if (!res.ok) return null;
+    const remote = await res.json();
+    if (!remote.success) return null;
+
+    let updatedAny = false;
+
+    // 1. Sync API Keys
+    const localKeys = getStoredApiKeys();
+    const mergedKeys = { ...localKeys };
+    if (remote.apiKeys && typeof remote.apiKeys === 'object') {
+      for (const [prov, key] of Object.entries(remote.apiKeys)) {
+        if (key && key.trim()) {
+          // If local doesn't have it, adopt remote
+          if (!mergedKeys[prov]?.trim()) {
+            mergedKeys[prov] = key.trim();
+            updatedAny = true;
+          }
+        }
+      }
+      if (updatedAny) {
+        localStorage.setItem(STORAGE_KEYS.API_KEYS, JSON.stringify(mergedKeys));
+      }
+    }
+
+    // 2. Sync Active Provider
+    if (remote.activeProvider && (!getActiveProvider() || getActiveProvider() === 'custom')) {
+      if (mergedKeys[remote.activeProvider]?.trim()) {
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_PROVIDER, remote.activeProvider);
+        updatedAny = true;
+      }
+    }
+
+    // 3. Sync Models
+    const localModels = getStoredModels();
+    const mergedModels = { ...localModels };
+    if (remote.models && typeof remote.models === 'object') {
+      for (const [prov, mId] of Object.entries(remote.models)) {
+        if (mId && !mergedModels[prov]) {
+          mergedModels[prov] = mId;
+          updatedAny = true;
+        }
+      }
+      if (updatedAny) {
+        localStorage.setItem(STORAGE_KEYS.SELECTED_MODELS, JSON.stringify(mergedModels));
+      }
+    }
+
+    // 4. Sync API Profiles (Cleaned of dummies)
+    const localProfiles = getStoredApiProfiles();
+    const remoteProfiles = Array.isArray(remote.apiProfiles)
+      ? remote.apiProfiles.filter((p) => p && (!DUMMY_PROFILE_IDS.includes(p.id) || Boolean(p.apiKey?.trim())))
+      : [];
+
+    if (remoteProfiles.length > 0) {
+      // Merge unique by ID
+      const profileMap = new Map();
+      remoteProfiles.forEach((p) => profileMap.set(p.id, p));
+      localProfiles.forEach((p) => profileMap.set(p.id, p));
+      const finalProfiles = Array.from(profileMap.values());
+      localStorage.setItem(STORAGE_KEYS.API_PROFILES, JSON.stringify(finalProfiles));
+      updatedAny = true;
+    }
+
+    if (remote.activeProfileId && !getActiveApiProfileId()) {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, remote.activeProfileId);
+      updatedAny = true;
+    }
+
+    if (updatedAny) {
+      window.dispatchEvent(new Event('rebirth_keys_updated'));
+      window.dispatchEvent(new Event('rebirth_api_profiles_updated'));
+    }
+
+    return remote;
+  } catch (err) {
+    console.warn('[Sync] Could not sync BYOK settings with server:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Persists current BYOK state & profiles to MongoDB Cloud
+ */
+export async function saveByokToMongoDB(partial = {}) {
+  try {
+    const payload = {
+      activeProvider: getActiveProvider(),
+      apiKeys: getStoredApiKeys(),
+      models: getStoredModels(),
+      customProxyUrl: getStoredCustomProxyUrl(),
+      samplers: getStoredSamplers(),
+      summaryConfig: getStoredSummaryConfig(),
+      apiProfiles: getStoredApiProfiles(),
+      activeProfileId: getActiveApiProfileId(),
+      ...partial,
+    };
+
+    const res = await fetch('/api/settings/byok', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    return await res.json();
+  } catch (err) {
+    console.warn('[Sync] Failed to persist BYOK settings to cloud:', err.message);
+    return null;
+  }
 }

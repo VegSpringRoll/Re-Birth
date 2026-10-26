@@ -16,7 +16,10 @@ import {
   Key,
   AlertCircle,
   Image as ImageIcon,
-  EyeOff
+  EyeOff,
+  Users,
+  Globe,
+  ChevronRight,
 } from 'lucide-react';
 import NarrationCard from './NarrationCard.jsx';
 import DialogueBubble from './DialogueBubble.jsx';
@@ -95,6 +98,7 @@ export default function StagePanel({
   onOpenWorldForge,
   onOpenKeyManager,
   onOpenPersonaModal,
+  onToggleLeftPanel,
   quickInputMove,
 }) {
   const [inputText, setInputText] = useState('');
@@ -374,6 +378,37 @@ export default function StagePanel({
           )}
         </div>
       </div>
+
+      {/* Mobile Scene HUD & World Matrix Banner (One-Tap Access to LeftPanel) */}
+      {session && onToggleLeftPanel && (
+        <button
+          type="button"
+          onClick={onToggleLeftPanel}
+          className="md:hidden w-full px-3.5 py-2 bg-gradient-to-r from-purple-950/80 via-slate-900/95 to-cyan-950/80 border-b border-purple-500/30 flex items-center justify-between text-left shadow-lg active:scale-[0.99] transition-all group shrink-0"
+          title="Tap to open full World, NPCs & Timeline Matrix"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-100 font-display truncate">
+                <Compass className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">{worldState?.currentLocation || session?.title || 'World & Timeline Matrix'}</span>
+              </div>
+              <p className="text-[10px] text-purple-300/80 font-mono truncate">
+                {worldState?.currentTime || worldState?.weather || worldState?.currentArc || 'Live Matrix & Sector Tracker'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+            <span className="px-2.5 py-1 rounded-full bg-cyan-950/90 border border-cyan-500/50 text-cyan-300 text-[10px] font-mono font-bold flex items-center gap-1 shadow-sm group-hover:border-cyan-400">
+              <Users className="w-3 h-3 text-cyan-400" />
+              <span>{worldState?.activeNPCs?.length || 0} NPCs</span>
+            </span>
+            <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        </button>
+      )}
 
       {/* Middle Stage Body: Chat Feed + Dedicated Character Stage Beside Chat */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative z-10">
@@ -975,6 +1010,17 @@ export default function StagePanel({
                   <Key className="w-3.5 h-3.5 text-purple-400" />
                   <span>Keys</span>
                 </button>
+                {onToggleLeftPanel && (
+                  <button
+                    type="button"
+                    onClick={onToggleLeftPanel}
+                    className="md:hidden px-2 sm:px-2.5 py-1 rounded-xl bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
+                    title="Open World & Timeline Matrix"
+                  >
+                    <Globe className="w-3.5 h-3.5 text-purple-400" />
+                    <span>World ({worldState?.activeNPCs?.length || 0})</span>
+                  </button>
+                )}
               </>
             )}
           </div>

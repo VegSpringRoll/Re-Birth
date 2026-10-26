@@ -195,31 +195,31 @@ export default function LeftPanel({
       {isMobileOpen && (
         <div
           onClick={onCloseMobile}
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in"
+          className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 animate-fade-in"
         />
       )}
 
       <aside
         className={`
-          ${isMobileOpen ? 'fixed inset-y-0 left-0 z-50 flex shadow-2xl shadow-black/90' : 'hidden md:flex'}
-          w-[86vw] max-w-[350px] md:w-84 xl:w-88 shrink-0 h-full flex-col glass-panel border-r border-purple-500/20 bg-slate-950/90 backdrop-blur-2xl overflow-hidden select-text z-20
+          ${isMobileOpen ? 'fixed inset-y-0 left-0 z-[60] flex shadow-2xl shadow-black/95 w-[92vw] max-w-[360px] sm:max-w-[400px]' : 'hidden md:flex w-84 xl:w-88 z-20'}
+          shrink-0 h-full flex-col glass-panel border-r border-purple-500/25 bg-[#070a18]/98 backdrop-blur-2xl overflow-hidden select-text pt-safe pb-safe
         `}
       >
         {/* Header */}
-        <div className="p-4 border-b border-purple-500/20 bg-gradient-to-r from-purple-950/50 via-slate-900/80 to-slate-950/90 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 flex items-center justify-center shadow-inner">
+        <div className="p-3.5 sm:p-4 border-b border-purple-500/20 bg-gradient-to-r from-purple-950/50 via-slate-900/80 to-slate-950/90 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 flex items-center justify-center shadow-inner shrink-0">
               <Globe className="w-4 h-4" />
             </div>
             <div>
               <h2 className="text-xs font-bold tracking-widest uppercase text-slate-100 font-display">
-                WORLD & TIMELINE
+                WORLD &amp; TIMELINE
               </h2>
-              <p className="text-[10px] text-purple-300/70 font-mono">Live Matrix & Sector Tracker</p>
+              <p className="text-[10px] text-purple-300/70 font-mono">Live Matrix &amp; Sector Tracker</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setIsEditing(!isEditing)}
               className="p-1.5 rounded-lg text-purple-300 hover:text-white hover:bg-purple-500/20 transition-colors"
@@ -235,10 +235,11 @@ export default function LeftPanel({
                   setCollapsed(true);
                 }
               }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-              title="Close Sidebar"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 transition-colors"
+              title="Close Matrix Panel"
             >
-              {isMobileOpen ? <X className="w-4 h-4 text-slate-300" /> : <ChevronsLeft className="w-4 h-4" />}
+              <X className="w-3.5 h-3.5" />
+              <span className="md:hidden">Close</span>
             </button>
           </div>
         </div>

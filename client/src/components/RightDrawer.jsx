@@ -46,6 +46,8 @@ import {
   saveActiveApiProfileId,
   getStoredCustomProxyUrl,
   saveStoredCustomProxyUrl,
+  saveByokToMongoDB,
+  syncByokWithMongoDB,
 } from '../utils/storage.js';
 import { getActivePersona, createOrUpdatePersona } from '../utils/personaStorage.js';
 import { getGoldStandardTemplate } from './WorldForgeModal.jsx';
@@ -413,13 +415,22 @@ export default function RightDrawer({
     }
   };
 
-  const handleSaveKeys = () => {
+  const handleSaveKeys = async () => {
     saveStoredApiKeys(apiKeys);
     saveActiveProvider(provider);
     saveStoredModels(models);
     saveStoredCustomProxyUrl(customBaseUrl);
     setKeySavedToast(true);
     onKeysSaved?.();
+    // Persist to MongoDB Cloud for cross-device sync on mobile
+    await saveByokToMongoDB({
+      apiKeys,
+      activeProvider: provider,
+      models,
+      customProxyUrl: customBaseUrl,
+      apiProfiles,
+      activeProfileId,
+    });
     setTimeout(() => setKeySavedToast(false), 2000);
   };
 
@@ -529,25 +540,49 @@ export default function RightDrawer({
         {/* TAB 1: BYOK MANAGER */}
         {activeTab === 'byok' && (
           <div className="space-y-5 animate-fade-in">
-            <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 leading-relaxed shadow-sm">
-              <span className="font-semibold text-purple-300">BYOK Security Guarantee:</span> All API keys are stored exclusively in your browser's <code className="bg-purple-900/60 px-1 py-0.5 rounded text-[11px] font-mono">localStorage</code>. If left empty, the engine uses the high-immersion built-in anime simulator!
+            <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 leading-relaxed shadow-sm flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-purple-300 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-purple-300">Cross-Device Cloud Sync Active:</span> API keys &amp; custom profiles are stored in your browser and automatically synchronized with your MongoDB database so they appear instantly on both mobile and laptop!
+              </div>
             </div>
 
             {/* SAVED API & MODEL PROFILES (DYNAMIC SELECTOR) */}
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900/90 via-cyan-950/20 to-slate-900/90 border border-cyan-500/30 space-y-3.5 shadow-md">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <label className="text-xs font-semibold text-cyan-300 uppercase font-mono tracking-wider flex items-center gap-2">
                   <Layers className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Saved API &amp; Model Profiles</span>
+                  <span>Saved API &amp; Model Profiles ({apiProfiles.length})</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setIsCreatingProfile(!isCreatingProfile)}
-                  className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-white bg-cyan-950/60 hover:bg-cyan-900/80 px-2.5 py-1 rounded-xl border border-cyan-700/50 transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>{isCreatingProfile ? 'Cancel' : 'Save As Profile'}</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/settings/clean-dummy', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.apiProfiles) {
+                          setApiProfiles(data.apiProfiles);
+                          saveStoredApiProfiles(data.apiProfiles);
+                          setProfileToast('Purged dummy profiles');
+                          setTimeout(() => setProfileToast(''), 2500);
+                        }
+                      } catch (e) {}
+                    }}
+                    className="text-[10px] font-mono text-purple-300 hover:text-white bg-purple-950/60 hover:bg-purple-900 px-2 py-1 rounded-xl border border-purple-700/50 transition-colors cursor-pointer active:scale-95"
+                    title="Clean unnecessary dummy profiles"
+                  >
+                    Clean Dummies
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingProfile(!isCreatingProfile)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-white bg-cyan-950/60 hover:bg-cyan-900/80 px-2.5 py-1 rounded-xl border border-cyan-700/50 transition-colors cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>{isCreatingProfile ? 'Cancel' : 'Save As Profile'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Profile Selector Dropdown */}
@@ -557,7 +592,9 @@ export default function RightDrawer({
                   onChange={(e) => handleSelectProfile(e.target.value)}
                   className="w-full bg-slate-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 font-sans"
                 >
-                  <option value="">-- Select Saved Profile / Switch Model --</option>
+                  <option value="">
+                    {apiProfiles.length === 0 ? '-- No saved profiles yet (Click "+ Save As Profile") --' : '-- Select Saved Profile / Switch Model --'}
+                  </option>
                   {apiProfiles.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name} ({p.provider.toUpperCase()} &bull; {p.model || 'Default'})
@@ -566,7 +603,7 @@ export default function RightDrawer({
                 </select>
 
                 <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
-                  <span>Selecting switches provider, API key &amp; model instantly.</span>
+                  <span>Switch provider, API key &amp; model instantly across devices.</span>
                   {activeProfileId && (
                     <div className="flex items-center gap-2">
                       <button

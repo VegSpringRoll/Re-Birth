@@ -14,6 +14,7 @@ import {
   getStoredSamplers,
   getStoredSummaryConfig,
   getStoredCustomProxyUrl,
+  syncByokWithMongoDB,
 } from './utils/storage.js';
 
 export default function App() {
@@ -42,9 +43,12 @@ export default function App() {
   const _keys = getStoredApiKeys();
   const isApiKeyConnected = _provider === 'custom' || Boolean(_keys[_provider]?.trim());
 
-  // 1. Fetch sessions on initial mount
+  // 1. Fetch sessions & sync BYOK API keys from MongoDB on initial mount
   useEffect(() => {
     fetchSessions();
+    syncByokWithMongoDB().then(() => {
+      setKeyUpdateTick((t) => t + 1);
+    });
   }, []);
 
   const fetchSessions = async () => {
@@ -489,6 +493,7 @@ export default function App() {
         sessions={sessions}
         currentSessionId={currentSessionId}
         currentUniverse={worldState?.universe}
+        activeNpcCount={worldState?.activeNPCs?.length || 0}
         onSelectSession={loadSession}
         onOpenWorldForge={() => setIsWorldForgeOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -539,6 +544,7 @@ export default function App() {
           onOpenWorldForge={() => setIsWorldForgeOpen(true)}
           onOpenKeyManager={() => setIsRightDrawerOpen(true)}
           onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
+          onToggleLeftPanel={() => setIsLeftPanelOpenMobile(!isLeftPanelOpenMobile)}
           quickInputMove={quickInputMove}
         />
 

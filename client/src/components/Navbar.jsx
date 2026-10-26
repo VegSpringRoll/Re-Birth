@@ -17,6 +17,7 @@ export default function Navbar({
   sessions,
   currentSessionId,
   currentUniverse,
+  activeNpcCount = 0,
   onSelectSession,
   onOpenWorldForge,
   onOpenSettings,
@@ -181,11 +182,16 @@ export default function Navbar({
         {currentSessionId && (
           <button
             onClick={onToggleLeftPanel}
-            className="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] text-[10px] sm:text-[11px] font-semibold text-purple-300 transition-all shadow-sm active:scale-95"
-            title="Open World & Timeline Matrix"
+            className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-purple-950/70 hover:bg-purple-900 border border-purple-500/40 text-[10px] sm:text-[11px] font-bold text-purple-200 transition-all shadow-sm active:scale-95"
+            title="Open World, NPCs & Timeline Matrix"
           >
-            <Globe className="w-3 h-3 text-purple-400 shrink-0" />
-            <span className="max-w-[42px] truncate">{currentUniverse || 'World'}</span>
+            <Globe className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <span>World</span>
+            {activeNpcCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-purple-900 text-purple-300 border border-purple-700/50 text-[9px] font-mono font-bold leading-none">
+                {activeNpcCount}
+              </span>
+            )}
           </button>
         )}
 
