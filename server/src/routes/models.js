@@ -60,27 +60,46 @@ export const DEFAULT_PRESET_MODELS = {
 
 /**
  * POST /api/models/detect
- * Detects available models for a given provider and user API key
+ * Detects available models for a given provider and user API key.
+ * Features key-prefix provider auto-detection, resilient error recovery,
+ * and guaranteed fallback preset models so dropdowns never blank out.
  */
 router.post('/detect', async (req, res) => {
-  const provider = req.body.provider || req.headers['x-provider'] || 'openrouter';
+  let provider = req.body.provider || req.headers['x-provider'] || 'openrouter';
   const apiKey = req.body.apiKey || req.headers['x-api-key'];
+  const cleanKey = apiKey ? apiKey.trim() : '';
 
-  if (!apiKey || !apiKey.trim()) {
+  // Key-prefix auto-detection: if the user pastes an OpenRouter key into an OpenAI box, auto-detect it!
+  if (cleanKey) {
+    if (cleanKey.startsWith('sk-or-v1-') || cleanKey.startsWith('sk-or-')) {
+      provider = 'openrouter';
+    } else if (cleanKey.startsWith('gsk_')) {
+      provider = 'groq';
+    } else if (cleanKey.startsWith('AIzaSy') || cleanKey.startsWith('AIza')) {
+      provider = 'gemini';
+    } else if (cleanKey.startsWith('sk-ant-')) {
+      provider = 'anthropic';
+    } else if (cleanKey.startsWith('sk-proj-') && provider !== 'openai') {
+      provider = 'openai';
+    }
+  }
+
+  const fallback = DEFAULT_PRESET_MODELS[provider] || [];
+
+  if (!cleanKey) {
     return res.json({
       success: true,
       provider,
       detected: false,
-      models: DEFAULT_PRESET_MODELS[provider] || [],
+      models: fallback,
+      fallbackModels: fallback,
       message: 'Enter API key to auto-detect live models from provider.',
     });
   }
 
-  const cleanKey = apiKey.trim();
-
   try {
     if (provider === 'openrouter') {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
+      let response = await fetch('https://openrouter.ai/api/v1/models', {
         headers: {
           Authorization: `Bearer ${cleanKey}`,
           'HTTP-Referer': 'https://rebirth.local',
@@ -88,45 +107,62 @@ router.post('/detect', async (req, res) => {
         },
       });
 
+      // If user's key returns 401 or error, retry without auth to fetch public catalog
       if (!response.ok) {
-        const errText = await response.text();
-        return res.status(response.status).json({
-          error: 'OPENROUTER_ERROR',
-          message: `OpenRouter returned ${response.status}: ${errText.slice(0, 200)}`,
-        });
+        try {
+          response = await fetch('https://openrouter.ai/api/v1/models', {
+            headers: {
+              'HTTP-Referer': 'https://rebirth.local',
+              'X-Title': 'Re-Birth Roleplay Engine',
+            },
+          });
+        } catch (retryErr) {}
       }
 
-      const data = await response.json();
-      if (Array.isArray(data.data)) {
-        // Map and sort models
-        const models = data.data.map((m) => {
-          const isFree = m.pricing?.prompt === '0' && m.pricing?.completion === '0';
-          return {
-            id: m.id,
-            name: `${m.name || m.id}${isFree ? ' (Free)' : ''}`,
-            contextLength: m.context_length,
-            isFree,
-          };
-        });
+      if (response && response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data.data) && data.data.length > 0) {
+          // Map and sort models
+          const models = data.data.map((m) => {
+            const isFree = m.pricing?.prompt === '0' && m.pricing?.completion === '0';
+            return {
+              id: m.id,
+              name: `${m.name || m.id}${isFree ? ' (Free)' : ''}`,
+              contextLength: m.context_length,
+              isFree,
+            };
+          });
 
-        // Sort so popular models (Claude, DeepSeek, Llama, GPT, Gemini) come first
-        const priorityKeywords = ['claude-3.5', 'deepseek', 'llama-3.3', 'gpt-4o', 'gemini-2'];
-        models.sort((a, b) => {
-          const aPriority = priorityKeywords.findIndex((k) => a.id.toLowerCase().includes(k));
-          const bPriority = priorityKeywords.findIndex((k) => b.id.toLowerCase().includes(k));
-          if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
-          if (aPriority !== -1) return -1;
-          if (bPriority !== -1) return 1;
-          return a.name.localeCompare(b.name);
-        });
+          // Sort so popular models (Claude, DeepSeek, Llama, GPT, Gemini) come first
+          const priorityKeywords = ['claude-3.5', 'deepseek', 'llama-3.3', 'gpt-4o', 'gemini-2'];
+          models.sort((a, b) => {
+            const aPriority = priorityKeywords.findIndex((k) => a.id.toLowerCase().includes(k));
+            const bPriority = priorityKeywords.findIndex((k) => b.id.toLowerCase().includes(k));
+            if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
+            if (aPriority !== -1) return -1;
+            if (bPriority !== -1) return 1;
+            return a.name.localeCompare(b.name);
+          });
 
-        return res.json({
-          success: true,
-          provider,
-          detected: true,
-          models,
-        });
+          return res.json({
+            success: true,
+            provider,
+            detected: true,
+            models,
+            fallbackModels: fallback,
+          });
+        }
       }
+
+      // If network or openrouter had issues, return preset fallback with success
+      return res.json({
+        success: true,
+        provider,
+        detected: false,
+        models: fallback,
+        fallbackModels: fallback,
+        message: 'Loaded OpenRouter preset models.',
+      });
     }
 
     if (provider === 'openai') {
@@ -138,9 +174,14 @@ router.post('/detect', async (req, res) => {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        return res.status(response.status).json({
+        return res.json({
+          success: false,
+          provider,
+          detected: false,
           error: 'OPENAI_ERROR',
           message: errJson.error?.message || `OpenAI returned status ${response.status}`,
+          models: fallback,
+          fallbackModels: fallback,
         });
       }
 
@@ -165,7 +206,8 @@ router.post('/detect', async (req, res) => {
           success: true,
           provider,
           detected: true,
-          models: chatModels.length > 0 ? chatModels : DEFAULT_PRESET_MODELS.openai,
+          models: chatModels.length > 0 ? chatModels : fallback,
+          fallbackModels: fallback,
         });
       }
     }
@@ -179,9 +221,14 @@ router.post('/detect', async (req, res) => {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        return res.status(response.status).json({
+        return res.json({
+          success: false,
+          provider,
+          detected: false,
           error: 'GROQ_ERROR',
           message: errJson.error?.message || `Groq returned status ${response.status}`,
+          models: fallback,
+          fallbackModels: fallback,
         });
       }
 
@@ -209,7 +256,8 @@ router.post('/detect', async (req, res) => {
           success: true,
           provider,
           detected: true,
-          models: groqModels.length > 0 ? groqModels : DEFAULT_PRESET_MODELS.groq,
+          models: groqModels.length > 0 ? groqModels : fallback,
+          fallbackModels: fallback,
         });
       }
     }
@@ -223,9 +271,14 @@ router.post('/detect', async (req, res) => {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        return res.status(response.status).json({
+        return res.json({
+          success: false,
+          provider,
+          detected: false,
           error: 'MISTRAL_ERROR',
           message: errJson.message || `Mistral returned status ${response.status}`,
+          models: fallback,
+          fallbackModels: fallback,
         });
       }
 
@@ -242,7 +295,8 @@ router.post('/detect', async (req, res) => {
           success: true,
           provider,
           detected: true,
-          models: mistralModels.length > 0 ? mistralModels : DEFAULT_PRESET_MODELS.mistral,
+          models: mistralModels.length > 0 ? mistralModels : fallback,
+          fallbackModels: fallback,
         });
       }
     }
@@ -267,6 +321,7 @@ router.post('/detect', async (req, res) => {
               provider,
               detected: true,
               models: customModels,
+              fallbackModels: fallback,
             });
           }
         }
@@ -276,7 +331,8 @@ router.post('/detect', async (req, res) => {
         success: true,
         provider,
         detected: true,
-        models: DEFAULT_PRESET_MODELS.custom,
+        models: fallback,
+        fallbackModels: fallback,
       });
     }
 
@@ -287,9 +343,14 @@ router.post('/detect', async (req, res) => {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        return res.status(response.status).json({
+        return res.json({
+          success: false,
+          provider,
+          detected: false,
           error: 'GEMINI_ERROR',
           message: errJson.error?.message || `Google Gemini returned status ${response.status}`,
+          models: fallback,
+          fallbackModels: fallback,
         });
       }
 
@@ -309,13 +370,13 @@ router.post('/detect', async (req, res) => {
           success: true,
           provider,
           detected: true,
-          models: genModels.length > 0 ? genModels : DEFAULT_PRESET_MODELS.gemini,
+          models: genModels.length > 0 ? genModels : fallback,
+          fallbackModels: fallback,
         });
       }
     }
 
     if (provider === 'anthropic') {
-      // Test Anthropic models endpoint or validate key format
       try {
         const response = await fetch('https://api.anthropic.com/v1/models', {
           headers: {
@@ -336,20 +397,19 @@ router.post('/detect', async (req, res) => {
               provider,
               detected: true,
               models,
+              fallbackModels: fallback,
             });
           }
         }
-      } catch (anthropicErr) {
-        // Fall back to preset models if /v1/models is restricted
-      }
+      } catch (anthropicErr) {}
 
-      // If Anthropic key starts with sk-ant-, mark detected
       const validPrefix = cleanKey.startsWith('sk-ant-');
       return res.json({
         success: true,
         provider,
         detected: validPrefix,
-        models: DEFAULT_PRESET_MODELS.anthropic,
+        models: fallback,
+        fallbackModels: fallback,
       });
     }
 
@@ -358,14 +418,19 @@ router.post('/detect', async (req, res) => {
       success: true,
       provider,
       detected: false,
-      models: DEFAULT_PRESET_MODELS[provider] || [],
+      models: fallback,
+      fallbackModels: fallback,
     });
   } catch (err) {
     console.error(`[ModelsRoute] Error fetching models for ${provider}:`, err.message);
-    res.status(500).json({
+    res.json({
+      success: false,
+      provider,
+      detected: false,
       error: 'DETECT_FAILED',
       message: err.message,
-      fallbackModels: DEFAULT_PRESET_MODELS[provider] || [],
+      models: fallback,
+      fallbackModels: fallback,
     });
   }
 });
@@ -375,7 +440,7 @@ router.post('/detect', async (req, res) => {
  * Tests model connection with a quick test prompt, returning "OK" and latency
  */
 router.post('/test', async (req, res) => {
-  const provider = req.body.provider || req.headers['x-provider'] || 'openrouter';
+  let provider = req.body.provider || req.headers['x-provider'] || 'openrouter';
   const apiKey = req.body.apiKey || req.headers['x-api-key'];
   const model = req.body.model || req.headers['x-model'];
 
@@ -389,6 +454,19 @@ router.post('/test', async (req, res) => {
 
   const startTime = Date.now();
   const cleanKey = apiKey.trim();
+
+  // Key-prefix auto-detection for test endpoint
+  if (cleanKey.startsWith('sk-or-v1-') || cleanKey.startsWith('sk-or-')) {
+    provider = 'openrouter';
+  } else if (cleanKey.startsWith('gsk_')) {
+    provider = 'groq';
+  } else if (cleanKey.startsWith('AIzaSy') || cleanKey.startsWith('AIza')) {
+    provider = 'gemini';
+  } else if (cleanKey.startsWith('sk-ant-')) {
+    provider = 'anthropic';
+  } else if (cleanKey.startsWith('sk-proj-') && provider !== 'openai') {
+    provider = 'openai';
+  }
 
   try {
     let responseText = '';

@@ -48,6 +48,8 @@ import {
   saveStoredCustomProxyUrl,
   saveByokToMongoDB,
   syncByokWithMongoDB,
+  DEFAULT_PRESET_MODELS,
+  detectProviderFromApiKey,
 } from '../utils/storage.js';
 import { getActivePersona, createOrUpdatePersona } from '../utils/personaStorage.js';
 import { getGoldStandardTemplate } from './WorldForgeModal.jsx';
@@ -167,7 +169,9 @@ export default function RightDrawer({
   };
 
   // Model auto-detection state
-  const [availableModels, setAvailableModels] = useState([]);
+  const [availableModels, setAvailableModels] = useState(
+    DEFAULT_PRESET_MODELS[provider || 'openrouter'] || []
+  );
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedSuccess, setDetectedSuccess] = useState(false);
   const [detectError, setDetectError] = useState('');
@@ -183,10 +187,12 @@ export default function RightDrawer({
 
   // Dedicated AI Summarizer configuration state
   const [summaryConfig, setSummaryConfig] = useState(getStoredSummaryConfig());
-  const [usePrimarySummaryKey, setUsePrimarySummaryKey] = useState(true);
+  const [usePrimarySummaryKey, setUsePrimarySummaryKey] = useState(!summaryConfig?.apiKey);
   const [showSummaryKey, setShowSummaryKey] = useState(false);
   const [summaryCustomBaseUrl, setSummaryCustomBaseUrl] = useState(summaryConfig?.customBaseUrl || 'http://localhost:11434/v1');
-  const [summaryAvailableModels, setSummaryAvailableModels] = useState([]);
+  const [summaryAvailableModels, setSummaryAvailableModels] = useState(
+    DEFAULT_PRESET_MODELS[summaryConfig?.provider || 'openai'] || []
+  );
   const [isDetectingSummary, setIsDetectingSummary] = useState(false);
   const [detectedSummarySuccess, setDetectedSummarySuccess] = useState(false);
   const [detectSummaryError, setDetectSummaryError] = useState('');
@@ -206,6 +212,8 @@ export default function RightDrawer({
     setIsDetectingSummary(true);
     setDetectSummaryError('');
 
+    const presetFallback = DEFAULT_PRESET_MODELS[targetProvider] || [];
+
     try {
       const res = await fetch('/api/models/detect', {
         method: 'POST',
@@ -219,16 +227,23 @@ export default function RightDrawer({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setDetectSummaryError(data.message || `Failed to detect models (${res.status})`);
+      if (!res.ok || data.success === false) {
+        setDetectSummaryError(data.message || `Failed to detect live models (${res.status})`);
         setDetectedSummarySuccess(false);
-        if (Array.isArray(data.fallbackModels)) {
-          setSummaryAvailableModels(data.fallbackModels);
+        const modelsToUse = (Array.isArray(data.models) && data.models.length > 0)
+          ? data.models
+          : (Array.isArray(data.fallbackModels) && data.fallbackModels.length > 0 ? data.fallbackModels : presetFallback);
+        setSummaryAvailableModels(modelsToUse);
+        if (data.provider && data.provider !== summaryConfig.provider) {
+          setSummaryConfig((prev) => ({ ...prev, provider: data.provider }));
         }
       } else {
-        if (Array.isArray(data.models)) {
+        if (Array.isArray(data.models) && data.models.length > 0) {
           setSummaryAvailableModels(data.models);
           setDetectedSummarySuccess(Boolean(data.detected));
+          if (data.provider && data.provider !== summaryConfig.provider) {
+            setSummaryConfig((prev) => ({ ...prev, provider: data.provider }));
+          }
 
           // If current summarizer has no model selected, default to the first detected model
           if (!summaryConfig.model && data.models.length > 0) {
@@ -237,11 +252,14 @@ export default function RightDrawer({
               model: data.models[0].id,
             }));
           }
+        } else {
+          setSummaryAvailableModels(presetFallback);
         }
       }
     } catch (err) {
       setDetectSummaryError(err.message || 'Network error fetching models');
       setDetectedSummarySuccess(false);
+      setSummaryAvailableModels((prev) => (prev.length > 0 ? prev : presetFallback));
     } finally {
       setIsDetectingSummary(false);
     }
@@ -302,6 +320,8 @@ export default function RightDrawer({
     setIsDetecting(true);
     setDetectError('');
 
+    const presetFallback = DEFAULT_PRESET_MODELS[targetProvider] || [];
+
     try {
       const res = await fetch('/api/models/detect', {
         method: 'POST',
@@ -315,14 +335,15 @@ export default function RightDrawer({
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setDetectError(data.message || `Failed to detect models (${res.status})`);
+      if (!res.ok || data.success === false) {
+        setDetectError(data.message || `Failed to detect live models (${res.status})`);
         setDetectedSuccess(false);
-        if (Array.isArray(data.fallbackModels)) {
-          setAvailableModels(data.fallbackModels);
-        }
+        const modelsToUse = (Array.isArray(data.models) && data.models.length > 0)
+          ? data.models
+          : (Array.isArray(data.fallbackModels) && data.fallbackModels.length > 0 ? data.fallbackModels : presetFallback);
+        setAvailableModels(modelsToUse);
       } else {
-        if (Array.isArray(data.models)) {
+        if (Array.isArray(data.models) && data.models.length > 0) {
           setAvailableModels(data.models);
           setDetectedSuccess(Boolean(data.detected));
 
@@ -333,11 +354,14 @@ export default function RightDrawer({
               [targetProvider]: data.models[0].id,
             }));
           }
+        } else {
+          setAvailableModels(presetFallback);
         }
       }
     } catch (err) {
       setDetectError(err.message || 'Network error fetching models');
       setDetectedSuccess(false);
+      setAvailableModels((prev) => (prev.length > 0 ? prev : presetFallback));
     } finally {
       setIsDetecting(false);
     }
@@ -1165,6 +1189,7 @@ export default function RightDrawer({
                 onChange={(e) => {
                   const newProvider = e.target.value;
                   setSummaryConfig({ ...summaryConfig, provider: newProvider });
+                  setSummaryAvailableModels(DEFAULT_PRESET_MODELS[newProvider] || []);
                   const effKey = usePrimarySummaryKey ? (apiKeys[newProvider] || '') : summaryConfig.apiKey;
                   fetchSummaryModels(newProvider, effKey, summaryCustomBaseUrl);
                 }}
@@ -1254,21 +1279,41 @@ export default function RightDrawer({
               </div>
 
               {!usePrimarySummaryKey ? (
-                <div className="relative">
-                  <input
-                    type={showSummaryKey ? 'text' : 'password'}
-                    value={summaryConfig.apiKey || ''}
-                    onChange={(e) => setSummaryConfig({ ...summaryConfig, apiKey: e.target.value })}
-                    placeholder={summaryConfig.provider === 'custom' ? 'Optional for local Ollama / LM Studio...' : `Enter separate ${summaryConfig.provider} key (sk-...)...`}
-                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSummaryKey(!showSummaryKey)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-200"
-                  >
-                    {showSummaryKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                <div className="space-y-1.5">
+                  <div className="relative">
+                    <input
+                      type={showSummaryKey ? 'text' : 'password'}
+                      value={summaryConfig.apiKey || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const detected = detectProviderFromApiKey(val);
+                        const updated = {
+                          ...summaryConfig,
+                          apiKey: val,
+                          ...(detected ? { provider: detected } : {}),
+                        };
+                        setSummaryConfig(updated);
+                        if (detected && detected !== summaryConfig.provider) {
+                          setSummaryAvailableModels(DEFAULT_PRESET_MODELS[detected] || []);
+                        }
+                      }}
+                      placeholder={summaryConfig.provider === 'custom' ? 'Optional for local Ollama / LM Studio...' : `Enter separate ${summaryConfig.provider} key (sk-...)...`}
+                      className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSummaryKey(!showSummaryKey)}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-200"
+                    >
+                      {showSummaryKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {detectProviderFromApiKey(summaryConfig.apiKey) && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-mono px-1">
+                      <CheckCircle2 className="w-3 h-3 text-cyan-400 shrink-0" />
+                      <span>Auto-detected <b>{detectProviderFromApiKey(summaryConfig.apiKey).toUpperCase()}</b> key</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="p-3 rounded-xl bg-slate-950 border border-white/[0.06] text-[11px] text-slate-400 font-mono flex items-center justify-between">
@@ -1403,6 +1448,7 @@ export default function RightDrawer({
                           provider: p.prov,
                           model: p.val
                         });
+                        setSummaryAvailableModels(DEFAULT_PRESET_MODELS[p.prov] || []);
                         const effKey = usePrimarySummaryKey ? (apiKeys[p.prov] || '') : (summaryConfig.apiKey || '');
                         fetchSummaryModels(p.prov, effKey, summaryCustomBaseUrl);
                       }}
@@ -1515,14 +1561,16 @@ export default function RightDrawer({
             {/* Save Button */}
             <div className="pt-2">
               <button
-                onClick={() => {
+                onClick={async () => {
                   const finalCfg = {
                     ...summaryConfig,
-                    apiKey: usePrimarySummaryKey ? (apiKeys[summaryConfig.provider] || '') : summaryConfig.apiKey,
+                    apiKey: usePrimarySummaryKey ? '' : (summaryConfig.apiKey || ''),
                     customBaseUrl: summaryConfig.provider === 'custom' ? summaryCustomBaseUrl : undefined,
                   };
                   saveStoredSummaryConfig(finalCfg);
                   setSummarySavedToast(true);
+                  // Sync to MongoDB Cloud for seamless mobile access
+                  await saveByokToMongoDB({ summaryConfig: finalCfg });
                   setTimeout(() => setSummarySavedToast(false), 2000);
                 }}
                 className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs tracking-wider uppercase transition-colors flex items-center justify-center gap-2 shadow-lg shadow-purple-900/40 cursor-pointer"

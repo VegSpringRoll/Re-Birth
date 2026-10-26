@@ -44,6 +44,71 @@ const DEFAULT_MODELS = {
   custom: 'default',
 };
 
+export const DEFAULT_PRESET_MODELS = {
+  openrouter: [
+    { id: 'anthropic/claude-3.5-sonnet', name: 'Anthropic: Claude 3.5 Sonnet' },
+    { id: 'deepseek/deepseek-r1', name: 'DeepSeek: DeepSeek R1 (Reasoning)' },
+    { id: 'meta-llama/llama-3.3-70b-instruct', name: 'Meta: Llama 3.3 70B Instruct' },
+    { id: 'openai/gpt-4o', name: 'OpenAI: GPT-4o' },
+    { id: 'openai/gpt-4o-mini', name: 'OpenAI: GPT-4o-mini (Fast & Cheap)' },
+    { id: 'google/gemini-2.0-flash-exp:free', name: 'Google: Gemini 2.0 Flash (Free)' },
+    { id: 'anthropic/claude-3.5-haiku', name: 'Anthropic: Claude 3.5 Haiku (Fast)' },
+    { id: 'mistralai/mistral-large-2411', name: 'Mistral: Mistral Large 2411' },
+    { id: 'gryphe/mythomax-l2-13b', name: 'Gryphe: MythoMax 13B (Roleplay Classic)' },
+    { id: 'nousresearch/hermes-3-llama-3.1-405b', name: 'Nous: Hermes 3 405B' },
+  ],
+  openai: [
+    { id: 'gpt-4o-mini', name: 'GPT-4o-mini (Fast & Affordable - Recommended for Summary)' },
+    { id: 'gpt-4o', name: 'GPT-4o (Flagship Multimodal)' },
+    { id: 'chatgpt-4o-latest', name: 'ChatGPT-4o-latest (Dynamic)' },
+    { id: 'o3-mini', name: 'o3-mini (High-speed Reasoning)' },
+    { id: 'o1', name: 'o1 (Deep Reasoning)' },
+    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+  ],
+  groq: [
+    { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant (Ultra-Fast & Free - Recommended for Summary)' },
+    { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile' },
+    { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill Llama 70B' },
+    { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+    { id: 'gemma2-9b-it', name: 'Gemma 2 9B IT' },
+  ],
+  mistral: [
+    { id: 'mistral-small-latest', name: 'Mistral Small (Fast & High Precision - Recommended for Summary)' },
+    { id: 'mistral-large-latest', name: 'Mistral Large (Flagship - Deep Narrative)' },
+    { id: 'open-mistral-nemo', name: 'Mistral NeMo 12B' },
+    { id: 'ministral-8b-latest', name: 'Ministral 8B' },
+  ],
+  gemini: [
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Ultra Fast & Free - Recommended for Summary)' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+    { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+  ],
+  anthropic: [
+    { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku (Fast & High Quality - Recommended for Summary)' },
+    { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+    { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+  ],
+  custom: [
+    { id: 'default', name: 'Custom Model (Specify Model ID)' },
+  ],
+};
+
+/**
+ * Intelligent helper to auto-detect API provider from common key prefixes
+ */
+export function detectProviderFromApiKey(key) {
+  if (!key || typeof key !== 'string') return null;
+  const k = key.trim();
+  if (k.startsWith('sk-or-v1-') || k.startsWith('sk-or-')) return 'openrouter';
+  if (k.startsWith('gsk_')) return 'groq';
+  if (k.startsWith('AIzaSy') || k.startsWith('AIza')) return 'gemini';
+  if (k.startsWith('sk-ant-')) return 'anthropic';
+  if (k.startsWith('sk-proj-') || (k.startsWith('sk-') && !k.startsWith('sk-or-') && !k.startsWith('sk-ant-'))) return 'openai';
+  return null;
+}
+
 const DEFAULT_SUMMARY_CONFIG = {
   enabled: true,
   provider: 'openai',
@@ -246,7 +311,7 @@ export async function syncByokWithMongoDB() {
         }
       }
       if (updatedAny) {
-        localStorage.setItem(STORAGE_KEYS.API_KEYS, JSON.stringify(mergedKeys));
+        localStorage.setItem(STORAGE_KEYS.BYOK_KEYS, JSON.stringify(mergedKeys));
       }
     }
 
@@ -270,6 +335,16 @@ export async function syncByokWithMongoDB() {
       }
       if (updatedAny) {
         localStorage.setItem(STORAGE_KEYS.SELECTED_MODELS, JSON.stringify(mergedModels));
+      }
+    }
+
+    // 4. Sync Summary Config
+    if (remote.summaryConfig && typeof remote.summaryConfig === 'object' && Object.keys(remote.summaryConfig).length > 0) {
+      const localSummary = getStoredSummaryConfig();
+      if (!localSummary.apiKey && remote.summaryConfig.apiKey) {
+        const mergedSummary = { ...localSummary, ...remote.summaryConfig };
+        localStorage.setItem(STORAGE_KEYS.SUMMARY_CONFIG, JSON.stringify(mergedSummary));
+        updatedAny = true;
       }
     }
 

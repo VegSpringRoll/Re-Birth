@@ -201,6 +201,11 @@ export default function App() {
     const apiKey = apiKeys[provider] || '';
     const model = models[provider] || '';
 
+    const hasDedicatedSummaryKey = Boolean(summaryConfig?.apiKey && summaryConfig.apiKey.trim());
+    const effSummaryKey = hasDedicatedSummaryKey ? summaryConfig.apiKey.trim() : apiKey;
+    const effSummaryProvider = hasDedicatedSummaryKey ? (summaryConfig?.provider || 'openai') : provider;
+    const effSummaryModel = hasDedicatedSummaryKey ? (summaryConfig?.model || 'gpt-4o-mini') : (models[provider] || model);
+
     abortControllerRef.current = new AbortController();
 
     try {
@@ -212,9 +217,9 @@ export default function App() {
           'x-provider': provider,
           'x-model': model,
           'x-custom-proxy-url': getStoredCustomProxyUrl(),
-          'x-summary-api-key': summaryConfig?.apiKey || apiKey,
-          'x-summary-provider': summaryConfig?.provider || 'openai',
-          'x-summary-model': summaryConfig?.model || 'gpt-4o-mini',
+          'x-summary-api-key': effSummaryKey,
+          'x-summary-provider': effSummaryProvider,
+          'x-summary-model': effSummaryModel,
         },
         body: JSON.stringify({
           sessionId: activeSessionId,

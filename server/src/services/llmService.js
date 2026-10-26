@@ -524,9 +524,24 @@ The wind carries the distinctive resonance of this world. Across the perimeter, 
  * Executes a summarization call for memory compaction across OpenRouter, OpenAI, Gemini, and Anthropic
  */
 export async function executeCompactionLLM({ previousSummary, archivedTurns, apiConfig, startTurn = 1, endTurn = 10 }) {
-  const { provider = 'openrouter', apiKey, model, customBaseUrl } = apiConfig || {};
+  let { provider = 'openrouter', apiKey, model, customBaseUrl } = apiConfig || {};
 
   const cleanKey = apiKey ? apiKey.trim() : '';
+
+  // Key-prefix auto-detection for summarizer / compaction
+  if (cleanKey) {
+    if (cleanKey.startsWith('sk-or-v1-') || cleanKey.startsWith('sk-or-')) {
+      provider = 'openrouter';
+    } else if (cleanKey.startsWith('gsk_')) {
+      provider = 'groq';
+    } else if (cleanKey.startsWith('AIzaSy') || cleanKey.startsWith('AIza')) {
+      provider = 'gemini';
+    } else if (cleanKey.startsWith('sk-ant-')) {
+      provider = 'anthropic';
+    } else if (cleanKey.startsWith('sk-proj-') && provider !== 'openai') {
+      provider = 'openai';
+    }
+  }
 
   if (provider !== 'custom' && !cleanKey) {
     return `[Turns ${startTurn}–${endTurn} Chronicle]: Key narrative developments: ${archivedTurns

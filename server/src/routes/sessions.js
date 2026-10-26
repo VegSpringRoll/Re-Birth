@@ -278,6 +278,25 @@ const handleGenerateMoveset = async (req, res) => {
     useModel = primaryModel || 'default';
   }
 
+  // Key-prefix auto-detection for moveset generation
+  if (useKey) {
+    if (useKey.startsWith('sk-or-v1-') || useKey.startsWith('sk-or-')) {
+      useProvider = 'openrouter';
+      if (!useModel || useModel === 'gpt-4o-mini') useModel = 'anthropic/claude-3.5-haiku';
+    } else if (useKey.startsWith('gsk_')) {
+      useProvider = 'groq';
+      if (!useModel || useModel === 'gpt-4o-mini') useModel = 'llama-3.1-8b-instant';
+    } else if (useKey.startsWith('AIzaSy') || useKey.startsWith('AIza')) {
+      useProvider = 'gemini';
+      if (!useModel || useModel === 'gpt-4o-mini') useModel = 'gemini-1.5-flash';
+    } else if (useKey.startsWith('sk-ant-')) {
+      useProvider = 'anthropic';
+      if (!useModel || useModel === 'gpt-4o-mini') useModel = 'claude-3-5-haiku-20241022';
+    } else if (useKey.startsWith('sk-proj-') && useProvider !== 'openai') {
+      useProvider = 'openai';
+    }
+  }
+
   // If no usable API config at all, use the improved heuristic parser
   if (!useKey && useProvider !== 'custom') {
     const fallbackMoves = fallbackParseMoves(rawText);

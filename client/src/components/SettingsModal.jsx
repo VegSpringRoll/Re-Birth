@@ -15,6 +15,8 @@ import {
 import {
   getStoredSummaryConfig,
   saveStoredSummaryConfig,
+  detectProviderFromApiKey,
+  saveByokToMongoDB,
 } from '../utils/storage.js';
 
 export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
@@ -23,9 +25,10 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     saveStoredSummaryConfig(summaryConfig);
     setSavedToast(true);
+    await saveByokToMongoDB({ summaryConfig });
     setTimeout(() => setSavedToast(false), 2000);
   };
 
@@ -96,6 +99,8 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
                 onChange={(e) => setSummaryConfig({ ...summaryConfig, provider: e.target.value })}
                 className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
               >
+                <option value="groq">Groq (llama-3.1-8b-instant - Fast & Free)</option>
+                <option value="mistral">Mistral AI (mistral-small-latest)</option>
                 <option value="openai">OpenAI (gpt-4o-mini)</option>
                 <option value="openrouter">OpenRouter (Unified)</option>
                 <option value="anthropic">Anthropic (claude-3-haiku)</option>
@@ -109,7 +114,7 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
                 type="text"
                 value={summaryConfig.model}
                 onChange={(e) => setSummaryConfig({ ...summaryConfig, model: e.target.value })}
-                placeholder="gpt-4o-mini / claude-3-haiku"
+                placeholder="gpt-4o-mini / llama-3.1-8b-instant"
                 className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
               />
             </div>
@@ -122,8 +127,16 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
             <input
               type="password"
               value={summaryConfig.apiKey}
-              onChange={(e) => setSummaryConfig({ ...summaryConfig, apiKey: e.target.value })}
-              placeholder="sk-... (Stored securely in local storage)"
+              onChange={(e) => {
+                const val = e.target.value;
+                const detected = detectProviderFromApiKey(val);
+                setSummaryConfig({
+                  ...summaryConfig,
+                  apiKey: val,
+                  ...(detected ? { provider: detected } : {}),
+                });
+              }}
+              placeholder="sk-... (Stored securely in local storage & synced to cloud)"
               className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
             />
           </div>
