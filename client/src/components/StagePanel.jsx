@@ -321,26 +321,26 @@ export default function StagePanel({
         }}
       />
 
-      {/* Stage Top Bar */}
-      <div className="px-5 py-2.5 border-b border-white/[0.07] bg-[#080b1a]/80 backdrop-blur-2xl flex items-center justify-between shrink-0 z-10 shadow-md">
-        <div className="flex items-center gap-3 min-w-0">
+      {/* Stage Top Bar (Hidden on mobile when 0 messages to avoid clutter) */}
+      <div className={`px-3 sm:px-5 py-2 sm:py-2.5 border-b border-white/[0.07] bg-[#080b1a]/80 backdrop-blur-2xl items-center justify-between shrink-0 z-10 shadow-md ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <div className="relative shrink-0">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block shadow-sm shadow-emerald-400" />
             <span className="absolute -inset-1 rounded-full bg-emerald-400/25 animate-ping pointer-events-none" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-[11px] sm:text-xs font-bold text-slate-100 font-display tracking-widest uppercase truncate">
+              <h1 className="text-[11px] sm:text-xs font-bold text-slate-100 font-display tracking-widest uppercase truncate max-w-[150px] sm:max-w-md">
                 {session?.title || 'RE-BIRTH ROLEPLAY STAGE'}
               </h1>
             </div>
-            <p className="text-[10px] text-purple-300/80 font-mono flex items-center gap-2 mt-0.5 flex-wrap">
+            <p className="text-[10px] text-purple-300/80 font-mono flex items-center gap-1.5 sm:gap-2 mt-0.5">
               <span className="font-semibold text-slate-300">
                 ⌛ {userTurnsCount} {userTurnsCount === 1 ? 'Turn' : 'Turns'}
               </span>
-              <span className="text-purple-600/60">&bull;</span>
+              <span className="text-purple-600/60 hidden xs:inline">&bull;</span>
               <span
-                className="text-cyan-300 font-semibold bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40 cursor-help"
+                className="text-cyan-300 font-semibold bg-cyan-950/60 px-1.5 sm:px-2 py-0.5 rounded-full border border-cyan-800/40 cursor-help hidden xs:inline"
                 title={`Full Chronicle Cumulative Size:\n• System & World Context: ~${tokenMetrics.systemTokens.toLocaleString()} tok\n• All ${messages.length} Messages in Chronicle: ~${tokenMetrics.allHistoryTokens.toLocaleString()} tok\n───────────────────────────────\nTotal Roleplay History: ~${tokenMetrics.fullRoleplayTokens.toLocaleString()} tok`}
               >
                 🪙 RP Total: ~{tokenMetrics.fullRoleplayTokens.toLocaleString()} tok
@@ -354,7 +354,7 @@ export default function StagePanel({
           {messages.length > 0 && !isStreaming && (
             <button
               onClick={onRegenerateTurn}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-purple-950/60 border border-white/[0.08] hover:border-purple-500/40 text-[11px] text-purple-300 hover:text-purple-100 transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-purple-950/60 border border-white/[0.08] hover:border-purple-500/40 text-[11px] text-purple-300 hover:text-purple-100 transition-all shadow-sm"
               title="Regenerate last turn"
             >
               <RotateCcw className="w-3.5 h-3.5 text-purple-400" />
@@ -364,7 +364,7 @@ export default function StagePanel({
           {isStreaming && (
             <button
               onClick={onStopStreaming}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-[11px] text-rose-300 hover:text-rose-100 transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-950/60 hover:bg-rose-900/80 border border-rose-500/40 text-[11px] text-rose-300 hover:text-rose-100 transition-all shadow-sm"
               title="Stop streaming"
             >
               <Square className="w-3.5 h-3.5 text-rose-400" />
@@ -378,34 +378,50 @@ export default function StagePanel({
       <div className="flex-1 flex overflow-hidden min-h-0 relative z-10">
         {/* Roleplay Chat Stage Feed */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 py-6 space-y-6 scroll-smooth">
-        {/* OPENING HERO SCREEN (Matching User Uploaded Image Pixel-For-Pixel) */}
+        {/* OPENING HERO SCREEN (Mobile-Optimized & Pixel Perfect) */}
         {messages.length === 0 && !isStreaming && (
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 animate-fade-in my-auto">
-            {/* Centered Glowing Rounded Square Badge with Compass Icon (Matching Concept Art) */}
-            <div className="w-20 h-20 rounded-3xl bg-slate-900/80 border border-cyan-400/50 p-1 shadow-2xl shadow-cyan-950/60 backdrop-blur-xl flex items-center justify-center mb-6 hover:scale-105 transition-transform">
-              <div className="w-full h-full rounded-2xl bg-gradient-to-tr from-cyan-950/60 to-purple-950/80 flex items-center justify-center border border-white/10">
-                <Compass className="w-9 h-9 text-cyan-300 animate-pulse-slow" />
+          <div className="min-h-[50vh] sm:min-h-full flex flex-col items-center justify-center text-center p-3 sm:p-6 animate-fade-in my-auto max-w-lg mx-auto">
+            {/* Centered Glowing Rounded Square Badge */}
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-slate-900/80 border border-cyan-400/50 p-1 shadow-2xl shadow-cyan-950/60 backdrop-blur-xl flex items-center justify-center mb-3 sm:mb-6 hover:scale-105 transition-transform shrink-0">
+              <div className="w-full h-full rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-950/60 to-purple-950/80 flex items-center justify-center border border-white/10">
+                <Compass className="w-7 h-7 sm:w-9 sm:h-9 text-cyan-300 animate-pulse-slow" />
               </div>
             </div>
 
-            {/* Title (Matching Concept Art: CHOOSE YOUR WORLD AND PLAY) */}
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-100 font-display tracking-[0.2em] uppercase">
+            {/* Title */}
+            <h2 className="text-base sm:text-2xl font-bold text-slate-100 font-display tracking-[0.12em] sm:tracking-[0.2em] uppercase px-1">
               CHOOSE YOUR WORLD AND PLAY
             </h2>
 
             {/* Subtitle */}
-            <p className="text-xs sm:text-sm text-slate-300/80 max-w-xl mt-3 leading-relaxed font-sans">
+            <p className="text-[11px] sm:text-sm text-slate-300/80 max-w-sm sm:max-w-xl mt-2 sm:mt-3 leading-relaxed font-sans px-2">
               Step into any realm from anime, light novels, movies, or fantasy lore. Pick a popular world preset or enter your own custom universe to begin your personalized chronicle.
             </p>
 
-            {/* Glowing Pill Button (Matching Concept Art: ✧ ENTER REALM & BEGIN) */}
+            {/* Glowing Pill Button */}
             <button
               onClick={onOpenWorldForge}
-              className="mt-7 px-8 py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-[0.2em] uppercase transition-all shadow-xl shadow-purple-900/60 flex items-center gap-2 hover:scale-105"
+              className="mt-4 sm:mt-7 px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all shadow-xl shadow-purple-900/60 flex items-center gap-2 hover:scale-105 active:scale-95"
             >
               <Sparkles className="w-4 h-4 text-purple-200" />
               <span>ENTER REALM & BEGIN</span>
             </button>
+
+            {/* Popular Realm Quick-Tap Chips */}
+            <div className="mt-4 sm:mt-6 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-md">
+              <span className="text-[9.5px] sm:text-[10px] font-mono text-purple-300/60 uppercase tracking-wider w-full mb-0.5">
+                Popular Realms
+              </span>
+              {['Sword Art Online', 'Jujutsu Kaisen', 'Re:Zero', 'Mushoku Tensei'].map((realm) => (
+                <button
+                  key={realm}
+                  onClick={onOpenWorldForge}
+                  className="px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-purple-500/20 border border-white/[0.08] hover:border-cyan-400/40 text-[10px] sm:text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all active:scale-95"
+                >
+                  {realm}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -850,9 +866,9 @@ export default function StagePanel({
     </div>
 
       {/* Input Stage Bottom Bar (Matching Concept Art, Mobile-Optimized) */}
-      <div className="p-2.5 sm:p-4 pb-safe border-t border-purple-500/20 bg-slate-950/90 backdrop-blur-2xl shrink-0 z-10 shadow-2xl">
-        {/* Toolbar: SYNTAX & SIMULATION TOOLS */}
-        <div className="flex items-center justify-between mb-2 px-1 gap-2 flex-wrap sm:flex-nowrap">
+      <div className="p-2 sm:p-4 pb-safe border-t border-purple-500/20 bg-slate-950/90 backdrop-blur-2xl shrink-0 z-10 shadow-2xl">
+        {/* Toolbar: SYNTAX & SIMULATION TOOLS (Hidden on mobile if 0 turns to maximize screen space) */}
+        <div className={`items-center justify-between mb-2 px-1 gap-2 flex-wrap sm:flex-nowrap ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             <span className="text-[10px] font-mono tracking-wider font-semibold text-purple-300/80 uppercase hidden sm:inline">
               SYNTAX:
@@ -909,7 +925,7 @@ export default function StagePanel({
         </div>
 
         {/* Input Capsule Box (Matching Moonlight Echoes Glass Capsule) */}
-        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/75 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-3 sm:px-4 py-1.5 sm:py-2 transition-all">
+        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/75 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-2.5 sm:px-4 py-1.5 sm:py-2 transition-all">
           <div className="p-1.5 text-slate-400 hover:text-cyan-300 cursor-pointer shrink-0 transition-colors hidden xs:block" title="Attach context or item reference">
             <Paperclip className="w-4 h-4" />
           </div>
@@ -921,14 +937,14 @@ export default function StagePanel({
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
-            placeholder="Type your action and dialogue in double quotes..."
-            className="flex-1 bg-transparent px-2 sm:px-3 py-1.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 max-h-32"
+            placeholder={messages.length === 0 ? 'Type action and dialogue in double quotes or pick a world above...' : 'Type your action and dialogue in double quotes...'}
+            className="flex-1 bg-transparent px-2 sm:px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 max-h-32"
           />
 
           <button
             type="submit"
             disabled={!inputText.trim() || isStreaming}
-            className="h-9 sm:h-10 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 active:scale-95"
+            className="h-9 sm:h-10 px-3.5 sm:px-5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 active:scale-95"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Turn</span>

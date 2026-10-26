@@ -93,13 +93,13 @@ export default function Navbar({
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setChronicleOpen((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] hover:border-purple-400/40 text-[11px] font-medium text-slate-300 hover:text-white transition-all shadow-sm"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] hover:border-purple-400/40 text-[11px] font-medium text-slate-300 hover:text-white transition-all shadow-sm"
+            title="Chronicle Archive"
           >
-            <Archive className="w-3 h-3 text-purple-400 shrink-0" />
+            <Archive className="w-3.5 h-3.5 text-purple-400 shrink-0" />
             <span className="font-bold uppercase tracking-wider hidden sm:inline">Chronicle Archive</span>
-            <span className="font-bold uppercase tracking-wider sm:hidden">Archive</span>
-            <span className="ml-1 text-[10px] font-mono text-purple-300 bg-purple-950/70 border border-purple-700/40 rounded-full px-1.5 py-0.5 leading-none hidden xs:inline">
-              ({safeSessions.length})
+            <span className="text-[10px] font-mono text-purple-300 bg-purple-950/70 border border-purple-700/40 rounded-full px-1.5 py-0.5 leading-none">
+              {safeSessions.length}
             </span>
             <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform ${chronicleOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -177,15 +177,17 @@ export default function Navbar({
       </div>
 
       {/* RIGHT: Persona Button + Retain Settings button */}
-      <div className="flex items-center gap-2 shrink-0">
-        <button
-          onClick={onToggleLeftPanel}
-          className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] text-[11px] font-semibold text-purple-300 transition-all shadow-sm"
-          title="Open World & Timeline Matrix"
-        >
-          <Globe className="w-3 h-3 text-purple-400 shrink-0" />
-          <span className="max-w-[70px] truncate">{currentUniverse || 'World'}</span>
-        </button>
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {currentSessionId && (
+          <button
+            onClick={onToggleLeftPanel}
+            className="md:hidden flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] text-[11px] font-semibold text-purple-300 transition-all shadow-sm"
+            title="Open World & Timeline Matrix"
+          >
+            <Globe className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            <span className="max-w-[50px] truncate">{currentUniverse || 'World'}</span>
+          </button>
+        )}
 
         {/* Ambient Soundscapes Controller (Mutable BGM) */}
         <AudioController currentSceneContext={currentSceneContext} />
@@ -193,18 +195,18 @@ export default function Navbar({
         {/* Persona Hub Button */}
         <button
           onClick={onOpenPersonaModal}
-          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md bg-white/[0.04] hover:bg-cyan-500/10 text-slate-200 border border-white/[0.08] hover:border-cyan-400/40 group cursor-pointer"
+          className="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md bg-white/[0.04] hover:bg-cyan-500/10 text-slate-200 border border-white/[0.08] hover:border-cyan-400/40 group cursor-pointer"
           title="Protagonist Persona & Moveset Lorebook Hub"
         >
           <User className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <span className="font-display uppercase tracking-wider text-[11px] hidden xs:inline">
+          <span className="font-display uppercase tracking-wider text-[11px] hidden sm:inline">
             Persona
           </span>
         </button>
 
         <button
           onClick={onToggleRightDrawer}
-          className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md group ${
+          className={`flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md group ${
             isRightDrawerOpen
               ? 'bg-purple-600/80 text-white border border-purple-400/50 shadow-purple-900/60'
               : 'bg-white/[0.04] hover:bg-purple-500/10 text-slate-200 border border-white/[0.08] hover:border-purple-400/40'
@@ -212,7 +214,7 @@ export default function Navbar({
           title="Settings & Samplers"
         >
           <Settings className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-45 transition-transform duration-300 ${isRightDrawerOpen ? 'rotate-45 text-white' : ''}`} />
-          <span className="font-display uppercase tracking-wider text-[11px] hidden xs:inline">Settings</span>
+          <span className="font-display uppercase tracking-wider text-[11px] hidden sm:inline">Settings</span>
         </button>
       </div>
     </header>

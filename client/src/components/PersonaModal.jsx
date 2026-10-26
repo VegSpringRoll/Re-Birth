@@ -293,7 +293,7 @@ export default function PersonaModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in select-text">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-5 animate-fade-in select-text">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
@@ -301,7 +301,7 @@ export default function PersonaModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-3xl bg-slate-950/95 border border-white/10 shadow-2xl shadow-black/90 overflow-hidden backdrop-blur-2xl z-10">
+      <div className="relative w-full max-w-5xl h-full sm:h-auto sm:max-h-[92vh] flex flex-col rounded-none sm:rounded-3xl bg-slate-950/95 border-0 sm:border border-white/10 shadow-2xl shadow-black/90 overflow-hidden backdrop-blur-2xl z-10 pt-safe pb-safe">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-slate-900/60 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">

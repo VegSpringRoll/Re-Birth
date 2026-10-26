@@ -79,6 +79,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
   const [characterConcept, setCharacterConcept] = useState('');
   const [systemInstructions, setSystemInstructions] = useState('');
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [showLoreDetails, setShowLoreDetails] = useState(false);
 
   // Saved Persona selector
   const [savedPersonas, setSavedPersonas] = useState(getStoredPersonas());
@@ -419,71 +420,83 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
   const internalLorePrompt = `Before we start the roleplay , How familiar you are with This ${selectedPreset?.universe || 'chosen'} verse world lore , characters , character appearances , threats and everything for a text based roleplay . i want proof that you have detailed knowledge of the verse because i am serious for this roleplay.`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-2xl animate-fade-in select-text">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-3xl bg-[#080b1f]/97 border border-purple-500/25 shadow-2xl shadow-black/90 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 md:p-6 bg-black/90 backdrop-blur-2xl animate-fade-in select-text">
+      <div className="relative w-full max-w-4xl h-full sm:h-auto sm:max-h-[90vh] flex flex-col rounded-none sm:rounded-3xl bg-[#080b1f]/98 border-0 sm:border border-purple-500/25 shadow-2xl shadow-black/90 overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-white/[0.07] bg-gradient-to-r from-purple-950/50 via-[#080b1f] to-cyan-950/30 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-0.5 shadow-lg shadow-purple-900/50 flex items-center justify-center shrink-0">
-              <Compass className="w-5 h-5 text-white animate-pulse-slow" />
-            </div>
-            <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-100 font-display tracking-widest uppercase">
+        <div className="p-3 sm:p-5 border-b border-white/[0.07] bg-gradient-to-r from-purple-950/50 via-[#080b1f] to-cyan-950/30 flex items-center justify-between shrink-0 pt-safe">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            {step === 'briefing' ? (
+              <button
+                type="button"
+                onClick={() => setStep('select')}
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 flex items-center justify-center shrink-0 text-slate-300 hover:text-white transition-colors active:scale-95"
+                title="Back to Universe Selection"
+              >
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            ) : (
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-cyan-400 p-0.5 shadow-lg shadow-purple-900/50 flex items-center justify-center shrink-0">
+                <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-pulse-slow" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-base font-bold text-slate-100 font-display tracking-widest uppercase truncate">
                 {step === 'select'
                   ? 'REALM GATEWAY // SELECT UNIVERSE'
                   : `WORLD BRIEFING // ${selectedPreset?.universe}`}
               </h2>
-              <p className="text-[11px] text-purple-300/70 font-mono">
+              <p className="text-[10px] sm:text-[11px] text-purple-300/70 font-mono truncate">
                 {step === 'select'
-                  ? 'Discover popular canon worlds or enter any custom universe to begin'
-                  : 'Review world briefing, choose timeline arc & provide your raw scenario start prompt'}
+                  ? 'Pick a world preset or enter your custom universe'
+                  : 'Review world briefing & choose starting timeline'}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            title="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
           {/* ─── STEP 1: SELECT UNIVERSE ─── */}
           {step === 'select' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Custom Universe Input */}
-              <form onSubmit={handleSelectCustom} className="p-4 rounded-2xl bg-white/[0.03] border border-purple-500/20 space-y-3 shadow-inner">
+              <form onSubmit={handleSelectCustom} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-purple-500/20 space-y-2.5 shadow-inner">
                 <div>
-                  <label className="text-[11px] font-mono text-cyan-300 uppercase font-semibold block mb-1.5">
-                    Enter ANY Anime / Light Novel / Movie / Series / Game
+                  <label className="text-[10px] sm:text-[11px] font-mono text-cyan-300 uppercase font-semibold block mb-1">
+                    Enter ANY Anime / LN / Movie / Series / Game
                   </label>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="e.g. Chainsaw Man, Mushoku Tensei, Re:Zero, Elden Ring, Dune…"
+                      placeholder="e.g. Chainsaw Man, Mushoku Tensei, Re:Zero, Elden Ring…"
                       value={customUniverseTitle}
                       onChange={(e) => {
                         setCustomUniverseTitle(e.target.value);
                         setCustomBriefingError('');
                       }}
-                      className="flex-1 bg-black/40 border border-purple-500/25 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                      className="flex-1 bg-black/50 border border-purple-500/25 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
                     />
                     <button
                       type="submit"
                       disabled={!customUniverseTitle.trim() || customBriefingLoading}
-                      className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-40 shrink-0"
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-40 shrink-0 active:scale-95"
                     >
                       {customBriefingLoading ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Briefing AI…</span>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span className="hidden xs:inline">Briefing…</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4" />
+                          <Sparkles className="w-3.5 h-3.5" />
                           <span>Brief World</span>
                         </>
                       )}
@@ -493,35 +506,31 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
 
                 {/* Error / Warning Banner */}
                 {customBriefingError && (
-                  <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-[11px] leading-relaxed">
+                  <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-[10px] leading-relaxed">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <span>{customBriefingError}</span>
                   </div>
                 )}
-
-                <p className="text-[10px] text-slate-500 font-mono">
-                  💡 AI will generate a canon synopsis and sequential timeline arcs. Requires an API key connected in Samplers &amp; Moves.
-                </p>
               </form>
 
               {/* Dynamic Presets Header with Refresh / Discover Button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono uppercase font-bold text-purple-300 tracking-wider">
-                    Popular Canon Universes ({presets.length})
+              <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-[11px] sm:text-xs font-mono uppercase font-bold text-purple-300 tracking-wider">
+                    Popular Universes ({presets.length})
                   </span>
                   <button
                     type="button"
                     onClick={fetchPresets}
                     disabled={presetsLoading}
                     title="Shuffle and discover new anime worlds"
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[10px] font-mono text-cyan-300 border border-cyan-500/30 transition-all hover:scale-105"
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[10px] font-mono text-cyan-300 border border-cyan-500/30 transition-all active:scale-95"
                   >
                     <RefreshCw className={`w-3 h-3 ${presetsLoading ? 'animate-spin' : ''}`} />
-                    <span>Discover New Worlds</span>
+                    <span className="hidden xs:inline">Shuffle</span>
                   </button>
                 </div>
-                <div className="relative w-full sm:w-64">
+                <div className="relative w-full sm:w-56">
                   <Search className="w-3.5 h-3.5 text-purple-400 absolute left-2.5 top-2.5" />
                   <input
                     type="text"
@@ -533,35 +542,49 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                 </div>
               </div>
 
-              {/* Presets Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {/* Presets Grid (Sleek mobile list, responsive desktop grid) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                 {filteredPresets.map((preset) => (
                   <div
                     key={preset.id}
                     onClick={() => handleSelectPreset(preset)}
-                    className="p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-purple-500/15 hover:border-cyan-400/50 cursor-pointer transition-all flex flex-col justify-between group shadow-lg shadow-black/40 hover:scale-[1.02]"
+                    className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-purple-500/15 hover:border-cyan-400/50 cursor-pointer transition-all flex sm:flex-col justify-between items-center sm:items-stretch gap-2.5 sm:gap-0 group shadow-lg shadow-black/40 hover:scale-[1.01] sm:hover:scale-[1.02] active:scale-95"
                   >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="flex sm:block items-center gap-2.5 min-w-0 flex-1">
+                      <div className="flex items-center justify-between sm:mb-1.5 shrink-0">
                         <AvatarImage
                           speaker={preset.knownNPCs?.[0]?.name || preset.universe}
                           universe={preset.universe}
                           size="md"
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0"
                         />
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-purple-950/80 text-purple-300 border border-purple-800/30">
+                        <span className="hidden sm:inline-block text-[8.5px] font-mono px-1.5 py-0.5 rounded-full bg-purple-950/80 text-purple-300 border border-purple-800/30">
                           Canon
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 transition-colors leading-tight">
-                        {preset.universe}
-                      </h4>
-                      <p className="text-[10px] text-purple-300/70 mt-1 line-clamp-2 leading-relaxed">
-                        {preset.title}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 sm:hidden mb-0.5">
+                          <span className="text-[8px] font-mono px-1.5 py-0.2 rounded-full bg-purple-950/80 text-purple-300 border border-purple-800/30">
+                            Canon
+                          </span>
+                          <span className="text-[9px] text-slate-500 font-mono">
+                            {preset.knownNPCs?.length || 3} Cast
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 transition-colors leading-tight truncate">
+                          {preset.universe}
+                        </h4>
+                        <p className="text-[10px] text-purple-300/70 mt-0.5 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                          {preset.title}
+                        </p>
+                      </div>
                     </div>
-                    <div className="pt-2.5 mt-2.5 border-t border-white/[0.05] flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                      <span>{preset.knownNPCs?.length || 3} Cast</span>
-                      <span className="text-cyan-400 group-hover:translate-x-0.5 transition-transform">Select →</span>
+
+                    <div className="shrink-0 sm:pt-2 sm:mt-2 sm:border-t sm:border-white/[0.05] flex items-center justify-between text-[9px] sm:text-[10px] text-slate-500 font-mono">
+                      <span className="hidden sm:inline">{preset.knownNPCs?.length || 3} Cast</span>
+                      <span className="text-xs font-bold px-2 py-1 sm:p-0 rounded-lg bg-cyan-950/50 sm:bg-transparent border border-cyan-500/30 sm:border-none text-cyan-400 group-hover:translate-x-0.5 transition-transform">
+                        Select →
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -571,20 +594,12 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
 
           {/* ─── STEP 2: WORLD BRIEFING, TIMELINE & RAW SCENARIO START ─── */}
           {step === 'briefing' && selectedPreset && (
-            <div className="space-y-5 animate-fade-in">
-              <button
-                onClick={() => setStep('select')}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Universe Selection</span>
-              </button>
-
+            <div className="space-y-4 sm:space-y-5 animate-fade-in pb-4">
               {/* World Briefing Card */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900/80 via-purple-950/30 to-slate-900/80 border border-purple-500/25 space-y-2.5 shadow-xl">
+              <div className="p-3.5 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900/80 via-purple-950/30 to-slate-900/80 border border-purple-500/25 space-y-2 shadow-xl">
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
+                  <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
                     CANON WORLD SYNOPSIS &amp; LORE MATRIX
                   </span>
                   {isCustomMode && (
@@ -593,88 +608,80 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                     </span>
                   )}
                 </div>
-                <h3 className="text-base font-bold text-slate-100 font-display">{selectedPreset.universe}</h3>
-                <p className="text-[12px] text-slate-300 leading-relaxed font-sans">{selectedPreset.synopsis}</p>
-
-                {/* API key warning on briefing if custom mode was blocked */}
-                {customBriefingError && customBriefingError.includes('API Key') && (
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/25 text-amber-300 text-[10px]">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>Using generic template. Connect an API key for AI-generated synopsis.</span>
-                  </div>
-                )}
+                <h3 className="text-sm sm:text-base font-bold text-slate-100 font-display">{selectedPreset.universe}</h3>
+                <p className="text-[11px] sm:text-[12px] text-slate-300 leading-relaxed font-sans">{selectedPreset.synopsis}</p>
               </div>
 
-              {/* Internal AI Lore Knowledge Proof & Audit Check */}
-              <div className="p-4 rounded-2xl bg-black/40 border border-cyan-500/25 space-y-3 shadow-inner">
+              {/* Internal AI Lore Knowledge Proof & Audit Check (Collapsible Accordion on Mobile) */}
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/40 border border-cyan-500/25 space-y-2 shadow-inner">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
-                      AI Canon Lore Mastery &amp; Knowledge Proof
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-cyan-300 truncate">
+                      AI Canon Lore Mastery Proof
                     </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => executeLoreVerification(selectedPreset.universe)}
-                    disabled={loreVerification.loading}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/[0.05] hover:bg-white/10 text-[10px] font-mono text-cyan-300 border border-cyan-500/30 transition-colors disabled:opacity-40"
+                    onClick={() => setShowLoreDetails(!showLoreDetails)}
+                    className="text-[10px] font-mono text-cyan-300 hover:text-white px-2.5 py-1 rounded-lg bg-white/[0.05] border border-cyan-500/30 transition-colors shrink-0"
                   >
-                    <RotateCcw className={`w-3 h-3 ${loreVerification.loading ? 'animate-spin' : ''}`} />
-                    <span>Re-audit</span>
+                    {showLoreDetails ? 'Hide Audit' : 'View Audit'}
                   </button>
                 </div>
 
-                {/* The Internal Audit Command Prompt */}
-                <div className="p-2.5 rounded-xl bg-black/60 border border-white/[0.07] flex items-start gap-2">
-                  <Terminal className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
-                  <div className="text-[11px] font-mono text-purple-300/90 leading-relaxed">
-                    <span className="text-slate-500 uppercase text-[9px] block mb-0.5">INTERNAL AUDIT PROMPT:</span>
-                    "{internalLorePrompt}"
-                  </div>
-                </div>
+                {showLoreDetails && (
+                  <div className="space-y-2 pt-1 animate-fade-in">
+                    <div className="p-2.5 rounded-xl bg-black/60 border border-white/[0.07] flex items-start gap-2">
+                      <Terminal className="w-3.5 h-3.5 text-purple-400 shrink-0 mt-0.5" />
+                      <div className="text-[10px] sm:text-[11px] font-mono text-purple-300/90 leading-relaxed">
+                        <span className="text-slate-500 uppercase text-[9px] block mb-0.5">INTERNAL AUDIT PROMPT:</span>
+                        "{internalLorePrompt}"
+                      </div>
+                    </div>
 
-                {/* Live AI Proof Response Output */}
-                <div className="p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/25 max-h-56 overflow-y-auto">
-                  {loreVerification.loading ? (
-                    <div className="flex items-center gap-2.5 text-xs text-cyan-300/80 py-2 font-mono">
-                      <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
-                      <span>Auditing AI familiarity with {selectedPreset.universe} canon lore, characters &amp; threats…</span>
+                    <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/25 max-h-48 overflow-y-auto">
+                      {loreVerification.loading ? (
+                        <div className="flex items-center gap-2 text-xs text-cyan-300/80 py-2 font-mono">
+                          <Loader2 className="w-4 h-4 animate-spin text-cyan-400 shrink-0" />
+                          <span>Auditing AI familiarity with {selectedPreset.universe} canon lore…</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 uppercase tracking-wider">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Live AI Proof of Lore Mastery</span>
+                          </div>
+                          <div className="text-xs text-slate-200 font-sans leading-relaxed whitespace-pre-wrap select-text">
+                            {loreVerification.response}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 uppercase tracking-wider">
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Live AI Proof of Lore Mastery</span>
-                      </div>
-                      <div className="text-xs text-slate-200 font-sans leading-relaxed whitespace-pre-wrap select-text">
-                        {loreVerification.response}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Choose Starting Timeline / Chronological Arcs */}
               <div className="space-y-2">
                 <label className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
                   <Clock className="w-4 h-4 text-purple-400" />
-                  <span>Choose Starting Timeline / Anime Arcs (Sequential)</span>
+                  <span>Choose Starting Timeline / Arc</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-2">
                   {selectedPreset.timelines?.map((tl) => {
                     const isSel = chosenTimeline?.id === tl.id;
                     return (
                       <div
                         key={tl.id}
                         onClick={() => setChosenTimeline(tl)}
-                        className={`p-3 rounded-xl border cursor-pointer transition-all text-xs ${
+                        className={`p-2.5 sm:p-3 rounded-xl border cursor-pointer transition-all text-xs ${
                           isSel
                             ? 'bg-purple-950/80 border-purple-400/70 text-purple-200 shadow-md ring-1 ring-purple-400/40'
                             : 'bg-white/[0.03] border-white/[0.07] text-slate-300 hover:border-purple-500/40'
                         }`}
                       >
-                        <span className="font-bold block mb-1 leading-snug">{tl.label}</span>
+                        <span className="font-bold block mb-0.5 leading-snug">{tl.label}</span>
                         <span className="text-[10px] text-slate-400 font-mono block">{tl.date}</span>
                       </div>
                     );
@@ -682,21 +689,17 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                 </div>
               </div>
 
-              {/* Scenario Start (User Raw Prompt - NOT AI Generated) */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-cyan-500/25 space-y-3 shadow-inner">
+              {/* Scenario Start (User Raw Prompt) */}
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.02] border border-cyan-500/25 space-y-2.5 shadow-inner">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-mono text-cyan-300 uppercase font-bold tracking-wider">
                     <Edit3 className="w-4 h-4 text-cyan-400" />
-                    <span>Scenario Start (Your Raw Opening Prompt)</span>
+                    <span>Scenario Start</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
-                    User Creative Control
+                  <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-800/40">
+                    Your Opening Move
                   </span>
                 </div>
-
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Provide your raw opening scene or first actions. Not AI-generated — you decide how, where, and in what situation you begin your journey in <span className="text-cyan-300 font-semibold">{selectedPreset.universe}</span>.
-                </p>
 
                 <div>
                   <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
@@ -706,81 +709,62 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                     type="text"
                     value={scenarioLocation}
                     onChange={(e) => setScenarioLocation(e.target.value)}
-                    placeholder="e.g. Jura Forest Outskirts, Royal Capital Cobblestone Gates, Tokyo Shibuya..."
+                    placeholder="e.g. Jura Forest Outskirts, Tokyo Shibuya..."
                     className="w-full bg-black/40 border border-purple-500/25 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
-                    Your Raw Opening Scenario / First Action
+                    Opening Actions / Situation
                   </label>
                   <textarea
-                    rows={4}
+                    rows={3}
                     value={scenarioPrompt}
                     onChange={(e) => setScenarioPrompt(e.target.value)}
-                    placeholder="Describe your opening scenario, starting situation, or first actions to begin the roleplay..."
+                    placeholder="Describe your opening scene or first actions..."
                     className="w-full bg-black/50 border border-cyan-500/30 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none font-sans leading-relaxed transition-colors placeholder:text-slate-500"
                   />
-                  <p className="text-[10px] text-slate-500 font-mono mt-1">
-                    💡 This exact prompt will be submitted as your very first turn to materialize you into {selectedPreset.universe}.
-                  </p>
                 </div>
               </div>
 
               {/* Gold Standard System Instructions Accordion */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-purple-500/25 space-y-2.5">
+              <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/[0.02] border border-purple-500/25 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FileCode className="w-4 h-4 text-purple-400" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
-                      Director System Instructions (Gold Standard)
+                    <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-purple-300">
+                      Director Instructions
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSystemInstructions(getGoldStandardTemplate(selectedPreset.universe))}
-                      className="text-[10px] font-mono text-slate-400 hover:text-cyan-300 transition-colors"
-                    >
-                      Reset to Template
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowSystemPrompt(!showSystemPrompt)}
-                      className="text-[10px] font-mono text-purple-300 hover:text-white px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] transition-colors"
-                    >
-                      {showSystemPrompt ? 'Hide Instructions' : 'View / Edit Instructions'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                    className="text-[10px] font-mono text-purple-300 hover:text-white px-2 py-0.5 rounded-md bg-white/[0.05] border border-white/[0.08] transition-colors"
+                  >
+                    {showSystemPrompt ? 'Hide' : 'Edit'}
+                  </button>
                 </div>
-
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Active simulation rules read on every response turn. Features turn selection rules, strict no-railroading, canon fidelity, and organic intimacy controls for <span className="text-cyan-300 font-bold">{selectedPreset.universe}</span>.
-                </p>
 
                 {showSystemPrompt && (
                   <div className="space-y-1.5 pt-1">
                     <textarea
-                      rows={9}
+                      rows={6}
                       value={systemInstructions}
                       onChange={(e) => setSystemInstructions(e.target.value)}
                       className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-3 text-[11px] text-purple-200 font-mono focus:outline-none focus:border-cyan-400 resize-y leading-relaxed"
                     />
-                    <p className="text-[10px] text-slate-500 font-mono">
-                      Notice: <code className="text-cyan-300">{`{World}`}</code> is automatically mapped to <code className="text-cyan-300">{selectedPreset.universe}</code>.
-                    </p>
                   </div>
                 )}
               </div>
 
-              {/* Protagonist Persona Selector (Saved Personas & Movesets) */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-cyan-500/25 space-y-3 shadow-inner">
+              {/* Protagonist Persona Selector */}
+              <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.02] border border-cyan-500/25 space-y-2.5 shadow-inner">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
-                      Protagonist Persona &amp; Lorebook (Already Saved)
+                    <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
+                      Protagonist Persona
                     </span>
                   </div>
                   {onOpenPersonaModal && (
@@ -790,28 +774,17 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                         onClose();
                         onOpenPersonaModal();
                       }}
-                      className="text-[11px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 transition-colors font-semibold"
+                      className="text-[10px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 transition-colors font-semibold"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Manage / New Persona</span>
+                      <Plus className="w-3 h-3" />
+                      <span>Manage</span>
                     </button>
                   )}
                 </div>
 
-                <p className="text-[11px] text-slate-400 font-sans leading-relaxed">
-                  Choose which saved persona you want to roleplay as in <span className="text-cyan-300 font-semibold">{selectedPreset.universe}</span>. Their physical traits, aura, and keyword-triggered moveset lorebook will materialize automatically.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {savedPersonas.map((p) => {
                     const isSel = p.id === selectedPersonaId;
-                    let moveCount = 0;
-                    try {
-                      if (p.movesetKnowledge && p.movesetKnowledge.trim().startsWith('[')) {
-                        moveCount = JSON.parse(p.movesetKnowledge).length;
-                      }
-                    } catch (e) {}
-
                     return (
                       <div
                         key={p.id}
@@ -820,7 +793,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                           setCharacterName(p.name);
                           setCharacterConcept(p.traits);
                         }}
-                        className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-center gap-3 ${
+                        className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-center gap-2.5 ${
                           isSel
                             ? 'bg-cyan-950/60 border-cyan-400 text-slate-100 ring-1 ring-cyan-400/40 shadow-lg shadow-cyan-950/40'
                             : 'bg-black/40 border-white/[0.08] text-slate-300 hover:border-cyan-500/40'
@@ -830,7 +803,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                           speaker={p.name}
                           universe="General Anime"
                           size="sm"
-                          className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/20"
+                          className="w-9 h-9 rounded-xl object-cover shrink-0 border border-white/20"
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
@@ -838,47 +811,47 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                             {isSel && <Check className="w-3.5 h-3.5 text-cyan-400 shrink-0" />}
                           </div>
                           <p className="text-[10px] text-slate-400 truncate mt-0.5">{p.traits}</p>
-                          <span className="text-[9px] font-mono text-cyan-300 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/40 inline-block mt-1">
-                            ⚡ {moveCount} Moves
-                          </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-
-              {/* Enter World Button */}
-              <div className="pt-4 border-t border-white/[0.05] flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={handleConfirmAndSpawn}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Entering Realm…</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>✧ Enter {selectedPreset.universe}</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           )}
         </div>
+
+        {/* Sticky Modal Footer (When in Briefing Step) */}
+        {step === 'briefing' && selectedPreset && (
+          <div className="p-3 sm:p-4 border-t border-white/[0.08] bg-[#070a1a]/98 backdrop-blur-xl shrink-0 flex items-center justify-between gap-3 pb-safe z-30">
+            <button
+              type="button"
+              onClick={() => setStep('select')}
+              className="px-3 sm:px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleConfirmAndSpawn}
+              className="flex-1 sm:flex-initial px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Entering Realm…</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>✧ Enter {selectedPreset.universe}</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
