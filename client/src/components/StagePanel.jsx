@@ -25,6 +25,7 @@ import NarrationCard from './NarrationCard.jsx';
 import DialogueBubble from './DialogueBubble.jsx';
 import AvatarImage from './AvatarImage.jsx';
 import CharacterStageSidePanel from './CharacterStageSidePanel.jsx';
+import { getActiveNPCsList } from './LeftPanel.jsx';
 import { parseRoleplayBlocks } from '../utils/parseRoleplayBlocks.js';
 import { getUniverseBackground } from '../utils/animeBackgrounds.js';
 import { calculateRoleplayTokenMetrics, estimateTokens } from '../utils/tokenCounter.js';
@@ -87,6 +88,7 @@ export function renderHighlightedProse(text, quoteColor = 'text-cyan-300 font-no
 export default function StagePanel({
   session,
   worldState,
+  activeNpcCount,
   streamingContent,
   isStreaming,
   apiKeyConnected,
@@ -408,7 +410,7 @@ export default function StagePanel({
             title="Open World, NPCs & Timeline Matrix"
           >
             <Users className="w-3.5 h-3.5 text-purple-400" />
-            <span>{worldState?.activeNPCs?.length || 0} NPCs</span>
+            <span>{(activeNpcCount !== undefined ? activeNpcCount : getActiveNPCsList(worldState).length)} NPCs</span>
             <ChevronRight className="w-3.5 h-3.5 text-purple-300" />
           </button>
         </div>

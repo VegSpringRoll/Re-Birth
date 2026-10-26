@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './components/Navbar.jsx';
-import LeftPanel from './components/LeftPanel.jsx';
+import LeftPanel, { getActiveNPCsList } from './components/LeftPanel.jsx';
 import StagePanel from './components/StagePanel.jsx';
 import RightDrawer from './components/RightDrawer.jsx';
 import WorldForgeModal from './components/WorldForgeModal.jsx';
@@ -498,7 +498,7 @@ export default function App() {
         sessions={sessions}
         currentSessionId={currentSessionId}
         currentUniverse={worldState?.universe}
-        activeNpcCount={worldState?.activeNPCs?.length || 0}
+        activeNpcCount={getActiveNPCsList(worldState).length}
         onSelectSession={loadSession}
         onOpenWorldForge={() => setIsWorldForgeOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -543,6 +543,7 @@ export default function App() {
         <StagePanel
           session={currentSession}
           worldState={worldState}
+          activeNpcCount={getActiveNPCsList(worldState).length}
           streamingContent={streamingContent}
           isStreaming={isStreaming}
           apiKeyConnected={isApiKeyConnected}
