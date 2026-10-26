@@ -117,10 +117,10 @@ export default function AudioController({ currentSceneContext }) {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-1.5 px-2 py-1 text-[11px] text-slate-300 hover:text-white transition-colors cursor-pointer"
+          className="flex items-center gap-1 px-1.5 sm:px-2 py-1 text-[11px] text-slate-300 hover:text-white transition-colors cursor-pointer"
           title="Ambient Soundscape & BGM Controls"
         >
-          <span className="max-w-[75px] truncate font-sans font-semibold">
+          <span className="max-w-[75px] truncate font-sans font-semibold hidden xs:inline">
             {isMuted ? 'Muted' : activePresetObj.label.split(' ')[0]}
           </span>
           <ChevronDown className="w-3 h-3 text-slate-400" />

@@ -461,7 +461,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
 
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            className="p-3 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
             title="Close modal"
           >
             <X className="w-5 h-5" />
@@ -524,7 +524,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                         setCustomUniverseTitle(e.target.value);
                         setCustomBriefingError('');
                       }}
-                      className="flex-1 bg-black/50 border border-purple-500/25 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
+                      className="flex-1 bg-black/50 border border-purple-500/25 rounded-xl px-3 py-2.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 transition-colors"
                     />
                     <button
                       type="submit"
@@ -579,7 +579,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                     placeholder="Filter worlds…"
                     value={presetSearch}
                     onChange={(e) => setPresetSearch(e.target.value)}
-                    className="w-full bg-white/[0.04] border border-purple-500/20 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-400"
+                    className="w-full bg-white/[0.04] border border-purple-500/20 rounded-xl pl-8 pr-3 py-2.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-purple-400"
                   />
                 </div>
               </div>
@@ -590,7 +590,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                   <div
                     key={preset.id}
                     onClick={() => handleSelectPreset(preset)}
-                    className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-purple-500/15 hover:border-cyan-400/50 cursor-pointer transition-all flex sm:flex-col justify-between items-center sm:items-stretch gap-2.5 sm:gap-0 group shadow-lg shadow-black/40 hover:scale-[1.01] sm:hover:scale-[1.02] active:scale-95"
+                    className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-purple-500/15 hover:border-cyan-400/50 cursor-pointer transition-all flex sm:flex-col justify-between items-center sm:items-stretch gap-2.5 sm:gap-0 group shadow-lg shadow-black/40 hover:scale-[1.01] sm:hover:scale-[1.02] active:scale-95 touch-manipulation"
                   >
                     <div className="flex sm:block items-center gap-2.5 min-w-0 flex-1">
                       <div className="flex items-center justify-between sm:mb-1.5 shrink-0">
@@ -717,7 +717,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                       <div
                         key={tl.id}
                         onClick={() => setChosenTimeline(tl)}
-                        className={`p-2.5 sm:p-3 rounded-xl border cursor-pointer transition-all text-xs ${
+                        className={`p-3 sm:p-3 rounded-xl border cursor-pointer transition-all text-xs touch-manipulation ${
                           isSel
                             ? 'bg-purple-950/80 border-purple-400/70 text-purple-200 shadow-md ring-1 ring-purple-400/40'
                             : 'bg-white/[0.03] border-white/[0.07] text-slate-300 hover:border-purple-500/40'
@@ -752,7 +752,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                     value={scenarioLocation}
                     onChange={(e) => setScenarioLocation(e.target.value)}
                     placeholder="e.g. Jura Forest Outskirts, Tokyo Shibuya..."
-                    className="w-full bg-black/40 border border-purple-500/25 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 transition-colors"
+                    className="w-full bg-black/40 border border-purple-500/25 rounded-xl px-3 py-3 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 transition-colors"
                   />
                 </div>
 
@@ -765,7 +765,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                     value={scenarioPrompt}
                     onChange={(e) => setScenarioPrompt(e.target.value)}
                     placeholder="Describe your opening scene or first actions..."
-                    className="w-full bg-black/50 border border-cyan-500/30 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none font-sans leading-relaxed transition-colors placeholder:text-slate-500"
+                    className="w-full bg-black/50 border border-cyan-500/30 rounded-xl p-3 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 resize-none font-sans leading-relaxed transition-colors placeholder:text-slate-500"
                   />
                 </div>
               </div>
@@ -794,7 +794,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                       rows={6}
                       value={systemInstructions}
                       onChange={(e) => setSystemInstructions(e.target.value)}
-                      className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-3 text-[11px] text-purple-200 font-mono focus:outline-none focus:border-cyan-400 resize-y leading-relaxed"
+                      className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-3 text-sm text-purple-200 font-mono focus:outline-none focus:border-cyan-400 resize-y leading-relaxed"
                     />
                   </div>
                 )}

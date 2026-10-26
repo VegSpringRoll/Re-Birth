@@ -379,13 +379,13 @@ export default function StagePanel({
         </div>
       </div>
 
-      {/* Mobile Scene HUD & World Matrix Banner (One-Tap Access to LeftPanel & Universe Selector) */}
+      {/* Mobile Scene HUD & World Matrix Banner (One-Tap Access to LeftPanel) */}
       {session && (
-        <div className="md:hidden w-full px-3 py-1.5 bg-gradient-to-r from-purple-950/90 via-slate-900/95 to-cyan-950/90 border-b border-purple-500/30 flex items-center justify-between shadow-lg shrink-0">
+        <div className="md:hidden w-full px-3 py-2 bg-gradient-to-r from-purple-950/90 via-slate-900/95 to-cyan-950/90 border-b border-purple-500/30 flex items-center justify-between shadow-lg shrink-0">
           <button
             type="button"
             onClick={onToggleLeftPanel}
-            className="flex-1 min-w-0 flex items-center gap-2 text-left mr-2 active:opacity-80"
+            className="flex-1 min-w-0 flex items-center gap-2 text-left mr-2 active:opacity-80 touch-manipulation"
             title="Tap to open World, NPCs & Timeline Matrix"
           >
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
@@ -395,48 +395,32 @@ export default function StagePanel({
                 <span className="truncate">{worldState?.currentLocation || session?.title || 'World & Timeline Matrix'}</span>
               </div>
               <p className="text-[10px] text-purple-300/80 font-mono truncate">
-                {worldState?.universe ? `Universe: ${worldState.universe} • ` : ''}
+                {worldState?.universe ? `${worldState.universe} • ` : ''}
                 {worldState?.currentTime || worldState?.weather || 'Live Sector Tracker'}
               </p>
             </div>
           </button>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            {onOpenWorldForge && (
-              <button
-                type="button"
-                onClick={onOpenWorldForge}
-                className="px-2 py-1 rounded-xl bg-cyan-950/90 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 text-[10px] font-mono font-bold flex items-center gap-1 active:scale-95 shadow-sm"
-                title="Universe Selector / Switch Realm"
-              >
-                <Globe className="w-3 h-3 text-cyan-400" />
-                <span>Universe</span>
-              </button>
-            )}
-
-            {onToggleLeftPanel && (
-              <button
-                type="button"
-                onClick={onToggleLeftPanel}
-                className="px-2 py-1 rounded-xl bg-purple-950/90 border border-purple-500/50 hover:border-purple-400 text-purple-200 text-[10px] font-mono font-bold flex items-center gap-1 active:scale-95 shadow-sm"
-                title="Open World, NPCs & Timeline Matrix"
-              >
-                <Users className="w-3 h-3 text-purple-400" />
-                <span>{worldState?.activeNPCs?.length || 0}</span>
-                <ChevronRight className="w-3.5 h-3.5 text-purple-300" />
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={onToggleLeftPanel}
+            className="px-2.5 py-1.5 rounded-xl bg-purple-950/90 hover:bg-purple-900 border border-purple-500/50 text-purple-200 text-[10.5px] font-mono font-bold flex items-center gap-1.5 active:scale-95 shadow-sm shrink-0 touch-manipulation"
+            title="Open World, NPCs & Timeline Matrix"
+          >
+            <Users className="w-3.5 h-3.5 text-purple-400" />
+            <span>{worldState?.activeNPCs?.length || 0} NPCs</span>
+            <ChevronRight className="w-3.5 h-3.5 text-purple-300" />
+          </button>
         </div>
       )}
 
       {/* Middle Stage Body: Chat Feed + Dedicated Character Stage Beside Chat */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative z-10">
         {/* Roleplay Chat Stage Feed */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-8 md:px-12 py-6 space-y-6 scroll-smooth">
-        {/* OPENING HERO SCREEN (Mobile-Optimized & Pixel Perfect) */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-10 py-4 sm:py-6 space-y-4 sm:space-y-6 scroll-smooth">
+        {/* OPENING HERO SCREEN (Responsive & Visually Immersive) */}
         {messages.length === 0 && !isStreaming && (
-          <div className="min-h-[50vh] sm:min-h-full flex flex-col items-center justify-center text-center p-3 sm:p-6 animate-fade-in my-auto max-w-lg mx-auto">
+          <div className="min-h-[50vh] sm:min-h-full flex flex-col items-center justify-center text-center p-3 sm:p-6 animate-fade-in my-auto max-w-xl md:max-w-2xl mx-auto">
             {/* Centered Glowing Rounded Square Badge */}
             <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-slate-900/80 border border-cyan-400/50 p-1 shadow-2xl shadow-cyan-950/60 backdrop-blur-xl flex items-center justify-center mb-3 sm:mb-6 hover:scale-105 transition-transform shrink-0">
               <div className="w-full h-full rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-950/60 to-purple-950/80 flex items-center justify-center border border-white/10">
@@ -445,31 +429,31 @@ export default function StagePanel({
             </div>
 
             {/* Title */}
-            <h2 className="text-base sm:text-2xl font-bold text-slate-100 font-display tracking-[0.12em] sm:tracking-[0.2em] uppercase px-1">
+            <h2 className="text-base sm:text-2xl md:text-3xl font-black text-slate-100 font-display tracking-[0.12em] sm:tracking-[0.18em] uppercase px-1">
               CHOOSE YOUR WORLD AND PLAY
             </h2>
 
             {/* Subtitle */}
             <p className="text-[11px] sm:text-sm text-slate-300/80 max-w-sm sm:max-w-xl mt-2 sm:mt-3 leading-relaxed font-sans px-2">
-              Step into any realm from anime, light novels, movies, or fantasy lore. Pick a popular world preset or enter your own custom universe to begin your personalized chronicle.
+              Step into any realm from anime, light novels, movies, or fantasy lore. Pick a popular world preset or enter your custom universe to begin your personalized chronicle.
             </p>
 
             {/* Glowing Pill Button */}
             <button
               onClick={onOpenWorldForge}
-              className="mt-4 sm:mt-7 px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all shadow-xl shadow-purple-900/60 flex items-center gap-2 hover:scale-105 active:scale-95"
+              className="mt-4 sm:mt-7 px-6 sm:px-9 py-2.5 sm:py-3.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-[0.15em] sm:tracking-[0.2em] uppercase transition-all shadow-xl shadow-purple-900/60 flex items-center gap-2 hover:scale-105 active:scale-95 touch-manipulation"
             >
               <Sparkles className="w-4 h-4 text-purple-200" />
               <span>ENTER REALM & BEGIN</span>
             </button>
 
             {/* Crucial Setup Hub Matrix (OC Persona & API Keys - 100% Mobile & Desktop Prominent) */}
-            <div className="mt-4 w-full max-w-xs sm:max-w-md grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="mt-4 sm:mt-6 w-full max-w-xs sm:max-w-md md:max-w-lg grid grid-cols-2 gap-2 sm:gap-3">
               {/* Protagonist Persona / OC Hub */}
               <button
                 type="button"
                 onClick={onOpenPersonaModal}
-                className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-cyan-950/70 via-slate-900/90 to-cyan-950/40 border border-cyan-500/35 hover:border-cyan-400 text-left transition-all group shadow-lg active:scale-95"
+                className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-cyan-950/70 via-slate-900/90 to-cyan-950/40 border border-cyan-500/35 hover:border-cyan-400 text-left transition-all group shadow-lg active:scale-95 touch-manipulation"
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
@@ -491,7 +475,7 @@ export default function StagePanel({
               <button
                 type="button"
                 onClick={onOpenKeyManager}
-                className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-purple-950/70 via-slate-900/90 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-left transition-all group shadow-lg active:scale-95"
+                className="p-2.5 sm:p-3.5 rounded-2xl bg-gradient-to-br from-purple-950/70 via-slate-900/90 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-left transition-all group shadow-lg active:scale-95 touch-manipulation"
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center">
@@ -516,7 +500,7 @@ export default function StagePanel({
             </div>
 
             {/* Popular Realm Quick-Tap Chips */}
-            <div className="mt-4 sm:mt-5 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-md">
+            <div className="mt-4 sm:mt-5 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-lg">
               <span className="text-[9.5px] sm:text-[10px] font-mono text-purple-300/60 uppercase tracking-wider w-full mb-0.5">
                 Popular Realms
               </span>
@@ -524,7 +508,7 @@ export default function StagePanel({
                 <button
                   key={realm}
                   onClick={onOpenWorldForge}
-                  className="px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-purple-500/20 border border-white/[0.08] hover:border-cyan-400/40 text-[10px] sm:text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all active:scale-95"
+                  className="px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-purple-500/20 border border-white/[0.08] hover:border-cyan-400/40 text-[10px] sm:text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all active:scale-95 touch-manipulation"
                 >
                   {realm}
                 </button>
@@ -598,7 +582,7 @@ export default function StagePanel({
                         rows={3}
                         value={editingContent}
                         onChange={(e) => setEditingContent(e.target.value)}
-                        className="w-full bg-slate-950/90 border border-white/10 rounded-2xl p-3 text-sm text-slate-100 focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
+                        className="w-full bg-slate-950/90 border border-white/10 rounded-2xl p-3 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 leading-relaxed font-sans"
                         autoFocus
                       />
                       <div className="flex justify-end gap-2 mt-2.5">
@@ -617,13 +601,13 @@ export default function StagePanel({
                       </div>
                     </div>
                   ) : (
-                    <div className="relative rounded-3xl bg-slate-900/45 backdrop-blur-2xl border border-white/10 px-6 py-4 text-slate-100 shadow-2xl hover:border-cyan-500/30 transition-all group/usercard">
+                    <div className="relative rounded-3xl bg-slate-900/45 backdrop-blur-2xl border border-white/10 px-4 py-3 sm:px-6 sm:py-4 text-slate-100 shadow-2xl hover:border-cyan-500/30 transition-all group/usercard">
                       <div className="font-sans">
                         {renderHighlightedProse(msg.rawContent, 'text-cyan-300 font-normal')}
                       </div>
 
                       {/* Action buttons on hover */}
-                      <div className="absolute right-4 -bottom-3 opacity-0 group-hover/usercard:opacity-100 transition-opacity flex items-center gap-1 bg-slate-950/90 border border-white/10 rounded-full px-2 py-0.5 shadow-xl backdrop-blur-xl">
+                      <div className="absolute right-4 -bottom-3 sm:opacity-0 sm:group-hover/usercard:opacity-100 transition-opacity flex items-center gap-1 bg-slate-950/90 border border-white/10 rounded-full px-2 py-0.5 shadow-xl backdrop-blur-xl">
                         <button
                           onClick={() => handleStartEdit(index, msg.rawContent)}
                           className="p-1 text-slate-400 hover:text-cyan-300 transition-colors"
@@ -738,7 +722,7 @@ export default function StagePanel({
                 </div>
 
                 {/* Main Moonlight Echoes Glass Card */}
-                <div className="rounded-3xl bg-slate-950/45 backdrop-blur-2xl border border-white/[0.09] shadow-2xl p-6 sm:p-7 relative overflow-hidden group/card hover:border-white/15 transition-all">
+                <div className="rounded-3xl bg-slate-950/45 backdrop-blur-2xl border border-white/[0.09] shadow-2xl p-4 sm:p-7 relative overflow-hidden group/card hover:border-white/15 transition-all">
                   {/* Subtle top light sheen reflection */}
                   <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
 
@@ -766,7 +750,7 @@ export default function StagePanel({
                         rows={6}
                         value={editingContent}
                         onChange={(e) => setEditingContent(e.target.value)}
-                        className="w-full bg-slate-950/90 border border-white/15 rounded-2xl p-3.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-sans leading-relaxed"
+                        className="w-full bg-slate-950/90 border border-white/15 rounded-2xl p-3.5 text-base sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-sans leading-relaxed"
                         autoFocus
                       />
                       <div className="flex justify-end gap-2 pt-1">
@@ -807,7 +791,7 @@ export default function StagePanel({
                                   speaker={block.speaker}
                                   universe={worldState?.universe}
                                   size="lg"
-                                  className="w-14 h-14 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
+                                  className="w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
                                 />
                                 <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
                                   NPC
@@ -822,7 +806,7 @@ export default function StagePanel({
                                     Dialogue
                                   </span>
                                 </div>
-                                <div className="text-[14px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
+                                <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
                                   "{block.content}"
                                 </div>
                               </div>
@@ -893,7 +877,7 @@ export default function StagePanel({
                 </button>
               </div>
 
-              <div className="rounded-3xl bg-slate-950/45 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-6 sm:p-7 relative overflow-hidden">
+              <div className="rounded-3xl bg-slate-950/45 backdrop-blur-2xl border border-cyan-500/30 shadow-2xl p-4 sm:p-7 relative overflow-hidden">
                 <div className="border-l-2 border-cyan-400 pl-3 font-semibold text-slate-100 text-sm tracking-wide mb-4">
                   | {worldState?.currentLocation || session?.title || 'Chronicle Chapter'}
                 </div>
@@ -923,7 +907,7 @@ export default function StagePanel({
                                 speaker={block.speaker}
                                 universe={worldState?.universe}
                                 size="lg"
-                                className="w-14 h-14 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
+                                className="w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
                               />
                               <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
                                 NPC
@@ -938,7 +922,7 @@ export default function StagePanel({
                                   Dialogue
                                 </span>
                               </div>
-                              <div className="text-[14px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
+                              <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
                                 "{block.content}"
                               </div>
                             </div>
@@ -976,15 +960,12 @@ export default function StagePanel({
       {/* Input Stage Bottom Bar (Matching Concept Art, Mobile-Optimized) */}
       <div className="p-2 sm:p-4 pb-safe border-t border-purple-500/20 bg-slate-950/90 backdrop-blur-2xl shrink-0 z-10 shadow-2xl">
         {/* Toolbar: SYNTAX & SIMULATION TOOLS (Hidden on mobile if 0 turns to maximize screen space) */}
-        <div className={`items-center justify-between mb-2 px-1 gap-2 flex-wrap sm:flex-nowrap ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
+        <div className={`items-center justify-between mb-2 px-1 gap-2 ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            <span className="text-[10px] font-mono tracking-wider font-semibold text-purple-300/80 uppercase hidden sm:inline">
-              SYNTAX:
-            </span>
             <button
               type="button"
               onClick={insertDialogueSyntax}
-              className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+              className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
               title='Insert "" dialogue quotation marks'
             >
               <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
@@ -995,57 +976,27 @@ export default function StagePanel({
                 <button
                   type="button"
                   onClick={handleEditLastMessage}
-                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-purple-950/70 border border-purple-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-purple-950/70 border border-purple-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
                   title="Edit Last Turn"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-purple-400" />
-                  <span className="hidden xs:inline">Edit Last Turn</span>
-                  <span className="xs:hidden">Edit</span>
+                  <span>Edit Last</span>
                 </button>
                 <button
                   type="button"
                   onClick={onRegenerateTurn}
-                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95"
+                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
                   title="Regenerate last response"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
                   <span className="hidden xs:inline">Regenerate</span>
                   <span className="xs:hidden">Reroll</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={onOpenPersonaModal}
-                  className="px-2 sm:px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
-                  title="Protagonist Persona & OC Moveset Hub"
-                >
-                  <UserIcon className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>OC</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenKeyManager}
-                  className="px-2 sm:px-2.5 py-1 rounded-xl bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
-                  title="API Keys & Settings"
-                >
-                  <Key className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Keys</span>
-                </button>
-                {onToggleLeftPanel && (
-                  <button
-                    type="button"
-                    onClick={onToggleLeftPanel}
-                    className="md:hidden px-2 sm:px-2.5 py-1 rounded-xl bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
-                    title="Open World & Timeline Matrix"
-                  >
-                    <Globe className="w-3.5 h-3.5 text-purple-400" />
-                    <span>World ({worldState?.activeNPCs?.length || 0})</span>
-                  </button>
-                )}
               </>
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] font-mono shrink-0 ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono shrink-0 ml-auto">
             <span
               className="text-cyan-400 bg-cyan-950/50 px-1.5 sm:px-2 py-0.5 rounded border border-cyan-800/40 cursor-help"
               title={`Your current message draft: ~${tokenMetrics.draftTokens.toLocaleString()} tokens`}
@@ -1062,7 +1013,7 @@ export default function StagePanel({
         </div>
 
         {/* Input Capsule Box (Matching Moonlight Echoes Glass Capsule) */}
-        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/75 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-2.5 sm:px-4 py-1.5 sm:py-2 transition-all">
+        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/75 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-2.5 sm:px-4 py-2 sm:py-2 transition-all">
           <div className="p-1.5 text-slate-400 hover:text-cyan-300 cursor-pointer shrink-0 transition-colors hidden xs:block" title="Attach context or item reference">
             <Paperclip className="w-4 h-4" />
           </div>
@@ -1075,7 +1026,7 @@ export default function StagePanel({
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
             placeholder={messages.length === 0 ? 'Type action and dialogue in double quotes or pick a world above...' : 'Type your action and dialogue in double quotes...'}
-            className="flex-1 bg-transparent px-2 sm:px-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 max-h-32"
+            className="flex-1 bg-transparent px-2 sm:px-3 py-1.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 max-h-32"
           />
 
           <button

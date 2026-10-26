@@ -525,7 +525,7 @@ export default function RightDrawer({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-3 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
             title="Close Settings"
           >
             <X className="w-5 h-5" />
@@ -546,7 +546,7 @@ export default function RightDrawer({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`shrink-0 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-semibold whitespace-nowrap transition-all border ${
+                className={`shrink-0 px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs font-semibold whitespace-nowrap transition-all border ${
                   isActive
                     ? 'bg-purple-600 text-white border-purple-400/50 shadow-md shadow-purple-900/40'
                     : 'bg-white/[0.03] text-slate-400 hover:text-slate-100 hover:bg-white/[0.08] border-white/[0.05]'
@@ -560,7 +560,7 @@ export default function RightDrawer({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-28 pb-safe">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-28 pb-safe overscroll-contain">
         {/* TAB 1: BYOK MANAGER */}
         {activeTab === 'byok' && (
           <div className="space-y-5 animate-fade-in">
@@ -614,7 +614,7 @@ export default function RightDrawer({
                 <select
                   value={activeProfileId}
                   onChange={(e) => handleSelectProfile(e.target.value)}
-                  className="w-full bg-slate-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 font-sans"
+                  className="w-full bg-slate-950 border border-cyan-500/40 rounded-xl px-3.5 py-2.5 text-base sm:text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 font-sans"
                 >
                   <option value="">
                     {apiProfiles.length === 0 ? '-- No saved profiles yet (Click "+ Save As Profile") --' : '-- Select Saved Profile / Switch Model --'}
@@ -663,7 +663,7 @@ export default function RightDrawer({
                       placeholder={`e.g. My ${provider.toUpperCase()} Claude Key`}
                       value={profileNameInput}
                       onChange={(e) => setProfileNameInput(e.target.value)}
-                      className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                      className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-3 py-1.5 text-base sm:text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
                     />
                     <button
                       type="button"
@@ -721,7 +721,7 @@ export default function RightDrawer({
                   value={customBaseUrl}
                   onChange={(e) => setCustomBaseUrl(e.target.value)}
                   placeholder="e.g. http://localhost:11434/v1"
-                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-sm text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-[16px] sm:text-sm text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
                 />
 
                 {/* Quick Presets */}
@@ -770,7 +770,7 @@ export default function RightDrawer({
                   }
                   value={apiKeys[provider] || ''}
                   onChange={(e) => setApiKeys({ ...apiKeys, [provider]: e.target.value })}
-                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-[16px] sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
                 />
                 <button
                   type="button"
@@ -834,7 +834,7 @@ export default function RightDrawer({
                     placeholder="e.g. anthropic/claude-3.5-sonnet, gpt-4o, etc."
                     value={models[provider] || ''}
                     onChange={(e) => setModels({ ...models, [provider]: e.target.value })}
-                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-mono"
+                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-[16px] sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-mono"
                   />
                   <span className="text-[11px] text-slate-400 block">
                     Custom model identifier will be sent directly to the {provider} API endpoint.
@@ -850,7 +850,7 @@ export default function RightDrawer({
                         placeholder="Search / filter models..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl pl-9 pr-3.5 py-2 text-base sm:text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
                       />
                     </div>
                   )}
@@ -858,7 +858,7 @@ export default function RightDrawer({
                   <select
                     value={models[provider] || ''}
                     onChange={(e) => setModels({ ...models, [provider]: e.target.value })}
-                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-sans cursor-pointer"
+                    className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-[16px] sm:text-sm text-slate-100 focus:outline-none focus:border-cyan-400 font-sans cursor-pointer"
                   >
                     {!models[provider] && (
                       <option value="">-- Choose AI Roleplay Model --</option>
@@ -965,7 +965,7 @@ export default function RightDrawer({
                 step="0.05"
                 value={samplers.temperature}
                 onChange={(e) => handleSaveSamplers({ ...samplers, temperature: parseFloat(e.target.value) })}
-                className="w-full h-2 accent-purple-500 bg-slate-800 rounded-lg cursor-pointer my-1"
+                className="w-full h-8 accent-purple-500 bg-slate-800 rounded-lg cursor-pointer my-1"
               />
               <div className="flex justify-between text-[11px] text-slate-400 font-mono">
                 <span>0.0 (Strict Lore)</span>
@@ -1225,7 +1225,7 @@ export default function RightDrawer({
                     setSummaryConfig({ ...summaryConfig, customBaseUrl: e.target.value });
                   }}
                   placeholder="e.g. http://localhost:11434/v1"
-                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-sm text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                  className="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3.5 py-2.5 text-[16px] sm:text-sm text-cyan-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
                 />
 
                 {/* Quick Presets */}
@@ -1298,7 +1298,7 @@ export default function RightDrawer({
                         }
                       }}
                       placeholder={summaryConfig.provider === 'custom' ? 'Optional for local Ollama / LM Studio...' : `Enter separate ${summaryConfig.provider} key (sk-...)...`}
-                      className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
+                      className="w-full bg-slate-950 border border-purple-500/30 rounded-xl pl-3.5 pr-11 py-2.5 text-[16px] sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 font-mono"
                     />
                     <button
                       type="button"

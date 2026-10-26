@@ -53,7 +53,7 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2.5 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -93,11 +93,11 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
-              <label className="text-[11px] font-mono text-slate-300 block mb-1">Summarizer Provider</label>
+              <label className="text-xs sm:text-[11px] font-mono text-slate-300 block mb-1">Summarizer Provider</label>
               <select
                 value={summaryConfig.provider}
                 onChange={(e) => setSummaryConfig({ ...summaryConfig, provider: e.target.value })}
-                className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-2 sm:py-1.5 text-base sm:text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
               >
                 <option value="groq">Groq (llama-3.1-8b-instant - Fast & Free)</option>
                 <option value="mistral">Mistral AI (mistral-small-latest)</option>
@@ -109,19 +109,19 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
             </div>
 
             <div>
-              <label className="text-[11px] font-mono text-slate-300 block mb-1">Target Model Identifier</label>
+              <label className="text-xs sm:text-[11px] font-mono text-slate-300 block mb-1">Target Model Identifier</label>
               <input
                 type="text"
                 value={summaryConfig.model}
                 onChange={(e) => setSummaryConfig({ ...summaryConfig, model: e.target.value })}
                 placeholder="gpt-4o-mini / llama-3.1-8b-instant"
-                className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
+                className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-2 sm:py-1.5 text-base sm:text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-mono text-slate-300 block mb-1">
+            <label className="text-xs sm:text-[11px] font-mono text-slate-300 block mb-1">
               Dedicated Summarizer API Key (Leave blank to use main roleplay key)
             </label>
             <input
@@ -137,7 +137,7 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
                 });
               }}
               placeholder="sk-... (Stored securely in local storage & synced to cloud)"
-              className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
+              className="w-full bg-slate-950 border border-purple-500/30 rounded-lg px-3 py-2 sm:py-1.5 text-base sm:text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-400"
             />
           </div>
 
@@ -165,7 +165,7 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
                 onClose();
               }
             }}
-            className="px-3.5 py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2.5 sm:py-1.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/40 text-rose-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors touch-manipulation"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Purge All Roleplay Data</span>
@@ -176,13 +176,13 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-purple-500/20">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+            className="px-4 py-2.5 sm:py-2 rounded-xl text-xs text-slate-400 hover:text-white touch-manipulation"
           >
             Close
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-purple-900/40"
+            className="px-5 py-2.5 sm:py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-purple-900/40 touch-manipulation"
           >
             {savedToast ? <Check className="w-4 h-4 text-emerald-300" /> : <ShieldCheck className="w-4 h-4" />}
             <span>{savedToast ? 'Settings Saved!' : 'Save Engine Settings'}</span>

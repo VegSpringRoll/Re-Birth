@@ -325,7 +325,7 @@ export default function PersonaModal({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-3 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
             title="Close Persona Hub"
           >
             <X className="w-5 h-5" />
@@ -335,7 +335,7 @@ export default function PersonaModal({
         {/* 2-Column Body */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* LEFT: Persona Selector Sidebar */}
-          <div className="w-full md:w-72 lg:w-80 max-h-36 sm:max-h-44 md:max-h-none border-b md:border-b-0 md:border-r border-white/[0.08] bg-slate-950/50 p-2.5 sm:p-4 flex flex-col shrink-0 overflow-y-auto">
+          <div className="w-full md:w-72 lg:w-80 max-h-40 sm:max-h-52 md:max-h-none border-b md:border-b-0 md:border-r border-white/[0.08] bg-slate-950/50 p-2.5 sm:p-4 flex flex-col shrink-0 overflow-y-auto">
             <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
               <span className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                 Saved Personas ({personas.length})
@@ -555,7 +555,7 @@ export default function PersonaModal({
                       value={avatar}
                       onChange={(e) => setAvatar(e.target.value)}
                       placeholder="Or paste custom image URL (https://...)"
-                      className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
+                      className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-base sm:text-xs text-slate-200 focus:outline-none focus:border-cyan-400 font-mono"
                     />
                   </div>
                 </div>
@@ -570,7 +570,7 @@ export default function PersonaModal({
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400"
                     placeholder="e.g. Patrick Yokam"
                   />
                 </div>
@@ -582,7 +582,7 @@ export default function PersonaModal({
                     type="text"
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3.5 py-2 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400"
                     placeholder="e.g. Male, Female, Sovereign..."
                   />
                 </div>
@@ -596,7 +596,7 @@ export default function PersonaModal({
                   rows={2}
                   value={physique}
                   onChange={(e) => setPhysique(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
                   placeholder="Height, hair, eye color, apparel, weapons carried, armor..."
                 />
               </div>
@@ -609,7 +609,7 @@ export default function PersonaModal({
                   rows={2}
                   value={traits}
                   onChange={(e) => setTraits(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
                   placeholder="Composed, analytical, sharp-witted, ruthless toward enemies, warm to allies..."
                 />
               </div>
@@ -622,7 +622,7 @@ export default function PersonaModal({
                   rows={2}
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
+                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
                   placeholder="Origin story, core motivation, cosmic affiliations..."
                 />
               </div>
@@ -667,7 +667,7 @@ export default function PersonaModal({
                     setRawMovesInput(e.target.value);
                     setMovesetParseError('');
                   }}
-                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono resize-none leading-relaxed placeholder:text-slate-500"
+                  className="w-full bg-black/60 border border-purple-500/30 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono resize-none leading-relaxed placeholder:text-slate-500"
                   placeholder="Paste raw abilities or wiki text here, e.g.:&#10;Rasengan: High-density spinning chakra sphere held in the palm...&#10;Chidori: Concentrated lightning piercing thrust at high velocity..."
                 />
 

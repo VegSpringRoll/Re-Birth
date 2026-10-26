@@ -80,12 +80,12 @@ export default function Navbar({
         {/* Universe Selector Pill (Always Visible on Mobile & Desktop) */}
         <button
           onClick={onOpenWorldForge}
-          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 hover:border-cyan-400 text-[10.5px] sm:text-[11px] font-bold text-cyan-200 transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
+          className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-full bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-500/40 hover:border-cyan-400 text-[10.5px] sm:text-[11px] font-bold text-cyan-200 transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer touch-manipulation"
           title="Universe Selector: Pick realm or create new world"
         >
           <Globe className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
           <span className="hidden lg:inline text-slate-400/80 font-mono">Universe:</span>
-          <span className="font-bold text-cyan-300 max-w-[65px] xs:max-w-[95px] sm:max-w-[130px] truncate">
+          <span className="font-bold text-cyan-300 max-w-[65px] xs:max-w-[95px] sm:max-w-[180px] md:max-w-[260px] truncate">
             {currentUniverse || 'Worlds'}
           </span>
           <ChevronDown className="w-3 h-3 text-cyan-400/70 shrink-0" />
