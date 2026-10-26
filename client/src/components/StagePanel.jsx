@@ -94,6 +94,7 @@ export default function StagePanel({
   onStopStreaming,
   onOpenWorldForge,
   onOpenKeyManager,
+  onOpenPersonaModal,
   quickInputMove,
 }) {
   const [inputText, setInputText] = useState('');
@@ -407,8 +408,60 @@ export default function StagePanel({
               <span>ENTER REALM & BEGIN</span>
             </button>
 
+            {/* Crucial Setup Hub Matrix (OC Persona & API Keys - 100% Mobile & Desktop Prominent) */}
+            <div className="mt-4 w-full max-w-xs sm:max-w-md grid grid-cols-2 gap-2 sm:gap-3">
+              {/* Protagonist Persona / OC Hub */}
+              <button
+                type="button"
+                onClick={onOpenPersonaModal}
+                className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-cyan-950/70 via-slate-900/90 to-cyan-950/40 border border-cyan-500/35 hover:border-cyan-400 text-left transition-all group shadow-lg active:scale-95"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center">
+                    <UserIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
+                  <span className="text-[8.5px] sm:text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-700/50">
+                    OC Hub
+                  </span>
+                </div>
+                <div className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">
+                  Protagonist OC
+                </div>
+                <div className="text-[9.5px] sm:text-[10px] text-slate-400 font-sans truncate mt-0.5">
+                  Moves &amp; Backstory
+                </div>
+              </button>
+
+              {/* API Keys & Settings Hub */}
+              <button
+                type="button"
+                onClick={onOpenKeyManager}
+                className="p-2.5 sm:p-3 rounded-2xl bg-gradient-to-br from-purple-950/70 via-slate-900/90 to-purple-950/40 border border-purple-500/35 hover:border-purple-400 text-left transition-all group shadow-lg active:scale-95"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center">
+                    <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </div>
+                  <span className={`text-[8.5px] sm:text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full border flex items-center gap-1 ${
+                    apiKeyConnected
+                      ? 'bg-emerald-950 text-emerald-300 border-emerald-700/50'
+                      : 'bg-amber-950 text-amber-300 border-amber-700/50 animate-pulse'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${apiKeyConnected ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    {apiKeyConnected ? 'Ready' : 'Setup Key'}
+                  </span>
+                </div>
+                <div className="text-xs font-bold text-slate-100 group-hover:text-purple-300 transition-colors">
+                  API Keys &amp; Models
+                </div>
+                <div className="text-[9.5px] sm:text-[10px] text-slate-400 font-sans truncate mt-0.5">
+                  OpenRouter, Gemini…
+                </div>
+              </button>
+            </div>
+
             {/* Popular Realm Quick-Tap Chips */}
-            <div className="mt-4 sm:mt-6 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-md">
+            <div className="mt-4 sm:mt-5 flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-md">
               <span className="text-[9.5px] sm:text-[10px] font-mono text-purple-300/60 uppercase tracking-wider w-full mb-0.5">
                 Popular Realms
               </span>
@@ -903,6 +956,24 @@ export default function StagePanel({
                   <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
                   <span className="hidden xs:inline">Regenerate</span>
                   <span className="xs:hidden">Reroll</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenPersonaModal}
+                  className="px-2 sm:px-2.5 py-1 rounded-xl bg-cyan-950/60 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
+                  title="Protagonist Persona & OC Moveset Hub"
+                >
+                  <UserIcon className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>OC</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenKeyManager}
+                  className="px-2 sm:px-2.5 py-1 rounded-xl bg-purple-950/60 hover:bg-purple-900 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm active:scale-95"
+                  title="API Keys & Settings"
+                >
+                  <Key className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Keys</span>
                 </button>
               </>
             )}

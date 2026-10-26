@@ -19,6 +19,7 @@ import {
   RefreshCw,
   User,
   Plus,
+  Key,
 } from 'lucide-react';
 import AvatarImage from './AvatarImage.jsx';
 import { getActiveProvider, getStoredApiKeys, getStoredModels } from '../utils/storage.js';
@@ -58,13 +59,18 @@ You are an immersive simulation engine for the ${worldName} anime verse. You con
 </continuity>`;
 }
 
-export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenPersonaModal }) {
+export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenPersonaModal, onOpenKeyManager }) {
   const [step, setStep] = useState('select'); // 'select' | 'briefing'
   const [presets, setPresets] = useState([]);
   const [presetsLoading, setPresetsLoading] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const [presetSearch, setPresetSearch] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
+
+  // Active key state for status badge
+  const activeProvider = getActiveProvider();
+  const apiKeys = getStoredApiKeys();
+  const hasKey = Boolean(apiKeys[activeProvider]?.trim());
 
   // Custom universe inputs
   const [customUniverseTitle, setCustomUniverseTitle] = useState('');
@@ -466,7 +472,43 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
         <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
           {/* ─── STEP 1: SELECT UNIVERSE ─── */}
           {step === 'select' && (
-            <div className="space-y-4 sm:space-y-6">
+            <div className="space-y-3.5 sm:space-y-5">
+              {/* Mobile Quick Setup Strip: OC & API Keys */}
+              <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white/[0.04] border border-white/10 gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase hidden xs:inline">OC:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onOpenPersonaModal) onOpenPersonaModal();
+                    }}
+                    className="text-cyan-300 font-bold text-xs hover:underline flex items-center gap-1 bg-cyan-950/70 px-2 py-1 rounded-lg border border-cyan-500/35 truncate active:scale-95"
+                    title="Setup Protagonist Persona & OC Moves"
+                  >
+                    <User className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <span className="truncate">{getActivePersona().name || 'Protagonist OC'}</span>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    if (onOpenKeyManager) onOpenKeyManager();
+                  }}
+                  className={`text-[10px] sm:text-xs font-mono font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1.5 shrink-0 active:scale-95 ${
+                    hasKey
+                      ? 'bg-emerald-950/70 border-emerald-500/40 text-emerald-300'
+                      : 'bg-amber-950/70 border-amber-500/40 text-amber-300 animate-pulse'
+                  }`}
+                  title="Configure API Keys & AI Models"
+                >
+                  <Key className="w-3 h-3" />
+                  <span>{hasKey ? 'Key: Connected' : 'Setup API Key'}</span>
+                </button>
+              </div>
+
               {/* Custom Universe Input */}
               <form onSubmit={handleSelectCustom} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-purple-500/20 space-y-2.5 shadow-inner">
                 <div>
@@ -764,22 +806,39 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-cyan-400" />
                     <span className="text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">
-                      Protagonist Persona
+                      Protagonist Persona (OC)
                     </span>
                   </div>
-                  {onOpenPersonaModal && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onClose();
-                        onOpenPersonaModal();
-                      }}
-                      className="text-[10px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 transition-colors font-semibold"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Manage</span>
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    {onOpenKeyManager && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenKeyManager();
+                        }}
+                        className="text-[10px] font-mono text-purple-300 hover:text-white flex items-center gap-1 transition-colors font-semibold px-2 py-1 rounded-lg bg-purple-950/60 border border-purple-500/30 active:scale-95"
+                        title="Configure API Keys & Models"
+                      >
+                        <Key className="w-3 h-3 text-purple-400" />
+                        <span>Keys</span>
+                      </button>
+                    )}
+                    {onOpenPersonaModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenPersonaModal();
+                        }}
+                        className="text-[10px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 transition-colors font-semibold px-2 py-1 rounded-lg bg-cyan-950/60 border border-cyan-500/30 active:scale-95"
+                        title="Create or edit your custom OC"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>+ Custom OC</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

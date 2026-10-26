@@ -538,6 +538,7 @@ export default function App() {
           onStopStreaming={handleStopStreaming}
           onOpenWorldForge={() => setIsWorldForgeOpen(true)}
           onOpenKeyManager={() => setIsRightDrawerOpen(true)}
+          onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
           quickInputMove={quickInputMove}
         />
 
@@ -559,6 +560,7 @@ export default function App() {
         onClose={() => setIsWorldForgeOpen(false)}
         onForgeRealm={handleForgeRealm}
         onOpenPersonaModal={() => setIsPersonaModalOpen(true)}
+        onOpenKeyManager={() => setIsRightDrawerOpen(true)}
       />
 
       {/* Settings Modal */}

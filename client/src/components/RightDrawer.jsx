@@ -475,7 +475,7 @@ export default function RightDrawer({
 
       <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[480px] md:w-[520px] bg-slate-950/95 border-l border-white/10 flex flex-col shadow-2xl shadow-black/80 animate-fade-in select-text backdrop-blur-2xl">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-slate-900/60 flex items-center justify-between shrink-0">
+        <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-slate-900/60 flex items-center justify-between shrink-0 pt-safe">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
               <Sliders className="w-4 h-4" />

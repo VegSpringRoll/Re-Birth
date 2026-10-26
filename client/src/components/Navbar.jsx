@@ -176,45 +176,56 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* RIGHT: Persona Button + Retain Settings button */}
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      {/* RIGHT: OC Persona + API Keys & Settings buttons */}
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {currentSessionId && (
           <button
             onClick={onToggleLeftPanel}
-            className="md:hidden flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] text-[11px] font-semibold text-purple-300 transition-all shadow-sm"
+            className="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-full bg-white/[0.04] hover:bg-purple-500/10 border border-white/[0.08] text-[10px] sm:text-[11px] font-semibold text-purple-300 transition-all shadow-sm active:scale-95"
             title="Open World & Timeline Matrix"
           >
-            <Globe className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-            <span className="max-w-[50px] truncate">{currentUniverse || 'World'}</span>
+            <Globe className="w-3 h-3 text-purple-400 shrink-0" />
+            <span className="max-w-[42px] truncate">{currentUniverse || 'World'}</span>
           </button>
         )}
 
         {/* Ambient Soundscapes Controller (Mutable BGM) */}
         <AudioController currentSceneContext={currentSceneContext} />
 
-        {/* Persona Hub Button */}
+        {/* Protagonist Persona / OC Button */}
         <button
           onClick={onOpenPersonaModal}
-          className="flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md bg-white/[0.04] hover:bg-cyan-500/10 text-slate-200 border border-white/[0.08] hover:border-cyan-400/40 group cursor-pointer"
-          title="Protagonist Persona & Moveset Lorebook Hub"
+          className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md bg-cyan-950/60 hover:bg-cyan-900/80 text-cyan-200 border border-cyan-500/40 hover:border-cyan-400 group cursor-pointer active:scale-95"
+          title="Protagonist Persona & OC Moveset Lorebook Hub"
         >
           <User className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <span className="font-display uppercase tracking-wider text-[11px] hidden sm:inline">
-            Persona
+          <span className="font-display uppercase tracking-wider text-[11px] font-bold text-cyan-300">
+            <span className="sm:hidden">OC</span>
+            <span className="hidden sm:inline">Persona</span>
           </span>
         </button>
 
+        {/* API Keys & Settings Button with Live Key Status Dot */}
         <button
           onClick={onToggleRightDrawer}
-          className={`flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md group ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-full font-semibold text-xs tracking-wider transition-all shadow-md group active:scale-95 ${
             isRightDrawerOpen
-              ? 'bg-purple-600/80 text-white border border-purple-400/50 shadow-purple-900/60'
-              : 'bg-white/[0.04] hover:bg-purple-500/10 text-slate-200 border border-white/[0.08] hover:border-purple-400/40'
+              ? 'bg-purple-600/90 text-white border border-purple-400 shadow-purple-900/60'
+              : 'bg-purple-950/60 hover:bg-purple-900/80 text-purple-200 border border-purple-500/40 hover:border-purple-400'
           }`}
-          title="Settings & Samplers"
+          title="API Keys, Models, Samplers & Engine Settings"
         >
           <Settings className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-45 transition-transform duration-300 ${isRightDrawerOpen ? 'rotate-45 text-white' : ''}`} />
-          <span className="font-display uppercase tracking-wider text-[11px] hidden sm:inline">Settings</span>
+          <span className="font-display uppercase tracking-wider text-[11px] font-bold text-purple-300">
+            <span className="sm:hidden">Keys</span>
+            <span className="hidden sm:inline">Settings</span>
+          </span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+              hasKey ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'bg-amber-400 animate-pulse'
+            }`}
+            title={hasKey ? 'API Key Connected' : 'API Key Missing - Click to connect'}
+          />
         </button>
       </div>
     </header>

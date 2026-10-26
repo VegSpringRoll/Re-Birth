@@ -335,22 +335,22 @@ export default function PersonaModal({
         {/* 2-Column Body */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* LEFT: Persona Selector Sidebar */}
-          <div className="w-full md:w-72 lg:w-80 max-h-44 md:max-h-none border-b md:border-b-0 md:border-r border-white/[0.08] bg-slate-950/50 p-3 sm:p-4 flex flex-col shrink-0 overflow-y-auto">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+          <div className="w-full md:w-72 lg:w-80 max-h-36 sm:max-h-44 md:max-h-none border-b md:border-b-0 md:border-r border-white/[0.08] bg-slate-950/50 p-2.5 sm:p-4 flex flex-col shrink-0 overflow-y-auto">
+            <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
+              <span className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
                 Saved Personas ({personas.length})
               </span>
               <button
                 type="button"
                 onClick={handleCreateNew}
-                className="flex items-center gap-1 text-[11px] font-semibold text-cyan-300 hover:text-white bg-cyan-950/60 hover:bg-cyan-900/80 px-2.5 py-1 rounded-xl border border-cyan-700/40 transition-colors"
+                className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-cyan-300 hover:text-white bg-cyan-950/60 hover:bg-cyan-900/80 px-2 sm:px-2.5 py-1 rounded-xl border border-cyan-700/40 transition-colors"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span>New</span>
               </button>
             </div>
 
-            <div className="space-y-2 overflow-y-auto pr-1 flex-1">
+            <div className="space-y-1.5 sm:space-y-2 overflow-y-auto pr-1 flex-1">
               {personas.map((p) => {
                 const isSelected = p.id === selectedPersonaId;
                 const isActive = p.id === activePersonaId;
@@ -365,7 +365,7 @@ export default function PersonaModal({
                   <div
                     key={p.id}
                     onClick={() => setSelectedPersonaId(p.id)}
-                    className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 relative group ${
+                    className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl border cursor-pointer transition-all flex items-start gap-2.5 sm:gap-3 relative group ${
                       isSelected
                         ? 'bg-cyan-950/40 border-cyan-400/60 shadow-lg shadow-cyan-950/40 ring-1 ring-cyan-400/30'
                         : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/15'
@@ -375,10 +375,10 @@ export default function PersonaModal({
                       <img
                         src={p.avatar}
                         alt={p.name}
-                        className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/20"
+                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover shrink-0 border border-white/20"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-950 to-slate-900 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-300 font-bold font-mono text-sm">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-950 to-slate-900 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-300 font-bold font-mono text-xs sm:text-sm">
                         {p.name ? p.name.charAt(0).toUpperCase() : 'U'}
                       </div>
                     )}

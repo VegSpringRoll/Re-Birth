@@ -30,8 +30,8 @@ export default function SettingsModal({ isOpen, onClose, onClearAllData }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-fade-in select-text">
-      <div className="w-full max-w-2xl rounded-2xl glass-panel-elevated bg-[#0a0d20]/95 border border-purple-500/30 shadow-2xl p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-xl animate-fade-in select-text">
+      <div className="w-full max-w-2xl h-full sm:h-auto sm:max-h-[90vh] rounded-none sm:rounded-2xl glass-panel-elevated bg-[#0a0d20]/98 sm:bg-[#0a0d20]/95 border-0 sm:border border-purple-500/30 shadow-2xl p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto pt-safe pb-safe">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-purple-500/20 pb-4">
           <div className="flex items-center gap-3">

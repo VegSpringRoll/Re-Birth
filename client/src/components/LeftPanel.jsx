@@ -238,7 +238,7 @@ export default function LeftPanel({
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
               title="Close Sidebar"
             >
-              <ChevronsLeft className="w-4 h-4" />
+              {isMobileOpen ? <X className="w-4 h-4 text-slate-300" /> : <ChevronsLeft className="w-4 h-4" />}
             </button>
           </div>
         </div>
