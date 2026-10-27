@@ -255,7 +255,7 @@ export default function PersonaModal({
 
       if (selectedPersonaId === activePersonaId && onApplyPersonaToSession) {
         onApplyPersonaToSession({
-          userProfile: { name, physique, traits, details },
+          userProfile: { name, avatar, gender, physique, traits, details },
           movesetKnowledge: formattedJson
         });
       }
@@ -285,7 +285,7 @@ export default function PersonaModal({
       setPersonas(getStoredPersonas());
       if (selectedPersonaId === activePersonaId && onApplyPersonaToSession) {
         onApplyPersonaToSession({
-          userProfile: { name, physique, traits, details },
+          userProfile: { name, avatar, gender, physique, traits, details },
           movesetKnowledge: updated
         });
       }
@@ -611,19 +611,6 @@ export default function PersonaModal({
                   onChange={(e) => setTraits(e.target.value)}
                   className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
                   placeholder="Composed, analytical, sharp-witted, ruthless toward enemies, warm to allies..."
-                />
-              </div>
-
-              <div>
-                <label className="text-[11px] font-mono uppercase text-slate-400 block mb-1">
-                  Background Lore & Relic Origin
-                </label>
-                <textarea
-                  rows={2}
-                  value={details}
-                  onChange={(e) => setDetails(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-base sm:text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none leading-relaxed"
-                  placeholder="Origin story, core motivation, cosmic affiliations..."
                 />
               </div>
             </div>

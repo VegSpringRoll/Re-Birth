@@ -147,6 +147,7 @@ router.post('/', async (req, res) => {
       userProfile: contextOverrides.userProfile ?? session.userProfile,
       movesetKnowledge: contextOverrides.movesetKnowledge ?? session.movesetKnowledge,
       currentUserMessage: userMessage || (session.messages.length > 0 && session.messages[session.messages.length - 1].role === 'user' ? session.messages[session.messages.length - 1].rawContent : ''),
+      samplers,
     });
 
     sendEvent({ type: 'start', timestamp: Date.now() });

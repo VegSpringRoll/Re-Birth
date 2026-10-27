@@ -17,6 +17,7 @@ const STORAGE_KEYS = {
 const DEFAULT_SAMPLERS = {
   temperature: 0.85,
   top_p: 0.95,
+  min_tokens: 250,
   max_tokens: 1200,
   sliding_window: 10,
   frequency_penalty: 0.2,

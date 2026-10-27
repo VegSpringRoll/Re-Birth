@@ -998,6 +998,51 @@ export default function RightDrawer({
               </div>
             </div>
 
+            {/* Minimum Response Tokens Slider */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-white/[0.08] space-y-3 shadow-md">
+              <div className="flex justify-between items-center text-xs font-mono">
+                <span className="text-indigo-300 font-semibold uppercase tracking-wider">Minimum Response Tokens</span>
+                <span className="px-2.5 py-1 rounded-lg bg-indigo-950/80 text-indigo-200 border border-indigo-800/40 font-bold">
+                  {samplers.min_tokens ?? 250} tokens
+                </span>
+              </div>
+              <input
+                type="range"
+                min="50"
+                max="2000"
+                step="25"
+                value={samplers.min_tokens ?? 250}
+                onChange={(e) => handleSaveSamplers({ ...samplers, min_tokens: parseInt(e.target.value, 10) })}
+                className="w-full h-2 accent-indigo-500 bg-slate-800 rounded-lg cursor-pointer my-1"
+              />
+              <div className="flex justify-between text-[11px] text-slate-400 font-mono">
+                <span>50 (Short)</span>
+                <span>250 (Standard)</span>
+                <span>2000 (Expansive)</span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {[
+                  { label: '100 Brisk', val: 100 },
+                  { label: '250 Standard', val: 250 },
+                  { label: '500 Detailed', val: 500 },
+                  { label: '1000 Deep', val: 1000 },
+                ].map((p) => (
+                  <button
+                    key={p.val}
+                    type="button"
+                    onClick={() => handleSaveSamplers({ ...samplers, min_tokens: p.val })}
+                    className={`px-3 py-1 rounded-lg text-xs font-mono border transition-all ${
+                      (samplers.min_tokens ?? 250) === p.val
+                        ? 'bg-indigo-950/80 border-indigo-500 text-indigo-300 shadow-sm'
+                        : 'bg-slate-900 border-white/[0.08] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Max Output Tokens Slider */}
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-white/[0.08] space-y-3 shadow-md">
               <div className="flex justify-between items-center text-xs font-mono">

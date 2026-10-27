@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AvatarImage from './AvatarImage.jsx';
 import { MoreHorizontal, Copy, Edit3, Trash2, Check } from 'lucide-react';
+import { renderMarkdownSpans } from './StagePanel.jsx';
 
 export default function DialogueBubble({
   speaker,
@@ -148,7 +149,7 @@ export default function DialogueBubble({
 
           <div className="relative text-slate-100 text-[15px] sm:text-[15.5px] leading-relaxed font-sans z-10">
             <span className={`text-lg font-serif select-none mr-1.5 ${style.quote}`}>“</span>
-            <span>{content}</span>
+            <span>{renderMarkdownSpans(content, 'bubble')}</span>
             <span className={`text-lg font-serif select-none ml-1.5 ${style.quote}`}>”</span>
           </div>
         </div>

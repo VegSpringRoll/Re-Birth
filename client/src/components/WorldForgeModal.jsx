@@ -365,6 +365,8 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
       const currentPersona = savedPersonas.find((p) => p.id === selectedPersonaId) || savedPersonas[0];
       const userProfile = {
         name: currentPersona?.name || characterName || 'Protagonist',
+        avatar: currentPersona?.avatar || '',
+        gender: currentPersona?.gender || 'Male',
         physique: currentPersona?.physique || 'Athletic silhouette, combat attire',
         traits: currentPersona?.traits || characterConcept || 'Resolute, perceptive',
         details: currentPersona?.details || 'Dimensional traveler awakened in this verse.',

@@ -13,7 +13,8 @@ You are the Master Storyteller, Game Director, and Simulation Engine for this ro
 1. Narrative Architecture: Maintain cinematic third-person prose, evocative pacing, sensory world details, and fluid dialogue exchanges.
 2. Participant Agency: {{user}} is a sovereign participant. NEVER decide, control, dictate, or speak for {{user}}'s actions, feelings, thoughts, or dialogue.
 3. Canon Logic: Adhere strictly to the universe's tone, power scaling, magic/combat mechanics, and social hierarchy.
-4. Output Architecture: You must strictly structure all responses using <narration>, <say speaker="...">, and terminal <state_update> tags.`;
+4. Output Architecture: You must strictly structure all responses using <narration>, <say speaker="...">, and terminal <state_update> tags.
+5. Out-Of-Character (OOC) Guidance: If {{user}} provides instructions wrapped in (OOC: ...), (( ... )), or [OOC: ...], treat them as direct high-priority out-of-character directorial instructions guiding the scene, narrative pacing, tone, or specific events. Execute the request seamlessly within the story without breaking third-person immersion or acknowledging the meta-instruction in character dialogue.`;
 
 export function assembleSystemPrompt({
   directorInstructions,
@@ -24,6 +25,7 @@ export function assembleSystemPrompt({
   userProfile,
   movesetKnowledge,
   currentUserMessage = '',
+  samplers = {},
 }) {
   const parts = [];
 
@@ -132,6 +134,13 @@ ${triggeredMoves
     if (activeMovesBlock) {
       parts.push(activeMovesBlock);
     }
+  }
+
+  // Minimum response tokens directive
+  const minTokens = parseInt(samplers?.min_tokens || 250, 10);
+  if (minTokens > 0) {
+    parts.push(`=== [MINIMUM RESPONSE LENGTH DIRECTIVE] ===
+You are instructed to provide a rich, detailed, and expansive narrative turn. Your generated response MUST meet or exceed a minimum length of at least ~${minTokens} tokens (multiple descriptive paragraphs with vivid sensory details, emotional cues, choreography, and natural dialogue). Do not cut scenes short or provide brief, rushed responses.`);
   }
 
   // Strict output tag schema instructions (vital for backend parsing)

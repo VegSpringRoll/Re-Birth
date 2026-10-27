@@ -37,8 +37,45 @@ import {
   getStoredCustomProxyUrl
 } from '../utils/storage.js';
 
+import { getActivePersona } from '../utils/personaStorage.js';
+
+/**
+ * Formats inline markdown (***bold italics***, **bold**, *italics*, _italics_)
+ */
+export function renderMarkdownSpans(text, keyPrefix = 'md') {
+  if (!text) return null;
+  const tokenRegex = /(\*\*\*[^*]+?\*\*\*|\*\*[^*]+?\*\*|\*[^*\n]+?\*|_[^_\n]+?_)/g;
+  const parts = text.split(tokenRegex);
+  return parts.map((part, idx) => {
+    const key = `${keyPrefix}-${idx}`;
+    if (part.startsWith('***') && part.endsWith('***') && part.length > 6) {
+      return (
+        <strong key={key} className="font-bold">
+          <em className="italic text-purple-200 font-serif">{part.slice(3, -3)}</em>
+        </strong>
+      );
+    }
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={key} className="font-bold text-slate-100">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if ((part.startsWith('*') && part.endsWith('*') && part.length > 2) || (part.startsWith('_') && part.endsWith('_') && part.length > 2)) {
+      return (
+        <em key={key} className="italic text-purple-200/90 font-serif tracking-wide">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return <span key={key}>{part}</span>;
+  });
+}
+
 /**
  * Renders dialogue enclosed in quotation marks with SillyTavern Moonlight Echoes color highlight
+ * and formats asterisks as rich italics.
  */
 export function renderHighlightedProse(text, quoteColor = 'text-cyan-300 font-normal') {
   if (!text) return null;
@@ -71,13 +108,22 @@ export function renderHighlightedProse(text, quoteColor = 'text-cyan-300 font-no
         <p key={`${pIdx}-${paraIdx}`} className="text-[14.5px] sm:text-[15px] leading-relaxed text-slate-200 font-sans my-2.5">
           {quoteSegments.map((seg, sIdx) => {
             if ((seg.startsWith('"') && seg.endsWith('"')) || (seg.startsWith('“') && seg.endsWith('”'))) {
+              const quoteBody = seg.slice(1, -1);
+              const quoteCharOpen = seg[0];
+              const quoteCharClose = seg[seg.length - 1];
               return (
                 <span key={sIdx} className={`${quoteColor} font-medium`}>
-                  {seg}
+                  {quoteCharOpen}
+                  {renderMarkdownSpans(quoteBody, `q-${pIdx}-${paraIdx}-${sIdx}`)}
+                  {quoteCharClose}
                 </span>
               );
             }
-            return <span key={sIdx}>{seg}</span>;
+            return (
+              <React.Fragment key={sIdx}>
+                {renderMarkdownSpans(seg, `p-${pIdx}-${paraIdx}-${sIdx}`)}
+              </React.Fragment>
+            );
           })}
         </p>
       );
@@ -245,6 +291,12 @@ export default function StagePanel({
   };
 
   const handleKeyDown = (e) => {
+    // On mobile virtual keyboards, allow Enter to insert a new line naturally so user can type paragraphs
+    const isMobileDevice = typeof window !== 'undefined' && (window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches);
+    if (isMobileDevice) {
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -286,10 +338,10 @@ export default function StagePanel({
     }
   };
 
-  const insertDialogueSyntax = () => {
+  const insertOocSyntax = () => {
     const textarea = inputRef.current;
     if (!textarea) {
-      setInputText((prev) => prev + '""');
+      setInputText((prev) => (prev ? `${prev} (OOC: )` : '(OOC: )'));
       return;
     }
     const start = textarea.selectionStart ?? inputText.length;
@@ -297,18 +349,29 @@ export default function StagePanel({
     const selected = inputText.substring(start, end);
     const before = inputText.substring(0, start);
     const after = inputText.substring(end);
+    const prefix = before && !before.endsWith(' ') && !before.endsWith('\n') ? ' ' : '';
 
-    const replacement = `"${selected}"`;
-    setInputText(before + replacement + after);
-
-    setTimeout(() => {
-      textarea.focus();
-      const cursor = start + 1;
-      textarea.setSelectionRange(cursor, cursor + selected.length);
-    }, 0);
+    if (selected) {
+      const replacement = `${prefix}(OOC: ${selected})`;
+      setInputText(before + replacement + after);
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + prefix.length + 6, start + prefix.length + 6 + selected.length);
+      }, 0);
+    } else {
+      const replacement = `${prefix}(OOC: )`;
+      setInputText(before + replacement + after);
+      setTimeout(() => {
+        textarea.focus();
+        const cursor = start + prefix.length + 6;
+        textarea.setSelectionRange(cursor, cursor);
+      }, 0);
+    }
   };
 
-  const userName = session?.userProfile?.name || 'Kaelen Valerius';
+  const activePersona = getActivePersona();
+  const userName = session?.userProfile?.name || activePersona?.name || 'Protagonist';
+  const userAvatar = session?.userProfile?.avatar || activePersona?.avatar;
   const parsedStreaming = streamingContent ? parseRoleplayBlocks(streamingContent) : null;
   const bgTheme = getUniverseBackground(worldState?.universe);
 
@@ -565,7 +628,7 @@ export default function StagePanel({
                     <span className="text-xs font-bold text-cyan-300 font-display flex items-center gap-1.5">
                       {userName}
                       <AvatarImage
-                        src={session?.userProfile?.avatar}
+                        src={userAvatar}
                         speaker={userName}
                         universe={worldState?.universe}
                         size="sm"
@@ -961,52 +1024,43 @@ export default function StagePanel({
 
       {/* Input Stage Bottom Bar (Matching Concept Art, Mobile-Optimized) */}
       <div className="p-2 sm:p-4 pb-safe border-t border-purple-500/20 bg-slate-950/90 backdrop-blur-2xl shrink-0 z-10 shadow-2xl">
-        {/* Toolbar: SYNTAX & SIMULATION TOOLS (Hidden on mobile if 0 turns to maximize screen space) */}
-        <div className={`items-center justify-between mb-2 px-1 gap-2 ${messages.length === 0 ? 'hidden sm:flex' : 'flex'}`}>
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        {/* Toolbar: OOC Tool & Roleplay Token Counter */}
+        <div className="flex items-center justify-between mb-2.5 px-1 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* OOC Command Button */}
             <button
               type="button"
-              onClick={insertDialogueSyntax}
-              className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
-              title='Insert "" dialogue quotation marks'
+              onClick={insertOocSyntax}
+              className="px-3 py-1 rounded-xl bg-purple-950/70 hover:bg-purple-900/90 border border-purple-500/40 text-purple-200 hover:text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation shrink-0"
+              title="Insert (OOC: ...) Out-Of-Character Director Guidance"
             >
-              <MessageCircle className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Dialogue</span>
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>OOC</span>
             </button>
-            {messages.length > 0 && !isStreaming && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleEditLastMessage}
-                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-purple-950/70 border border-purple-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
-                  title="Edit Last Turn"
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Edit Last</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onRegenerateTurn}
-                  className="px-2.5 sm:px-3 py-1 rounded-xl bg-slate-900/90 hover:bg-cyan-950/70 border border-cyan-500/30 text-slate-300 hover:text-white text-xs font-medium transition-colors flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation"
-                  title="Regenerate last response"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-                  <span className="hidden xs:inline">Regenerate</span>
-                  <span className="xs:hidden">Reroll</span>
-                </button>
-              </>
-            )}
+
+            {/* Whole Roleplay Cumulative Token Displayer */}
+            <span
+              className="text-[10.5px] sm:text-xs font-mono text-amber-300 bg-amber-950/50 border border-amber-800/40 px-2.5 py-1 rounded-xl flex items-center gap-1.5 cursor-help truncate shadow-sm font-semibold"
+              title={`Full Chronicle Cumulative Size:\n• System & World Context: ~${tokenMetrics.systemTokens.toLocaleString()} tok\n• All ${messages.length} Messages in Chronicle: ~${tokenMetrics.allHistoryTokens.toLocaleString()} tok\n───────────────────────────────\nTotal Roleplay History: ~${tokenMetrics.fullRoleplayTokens.toLocaleString()} tok`}
+            >
+              <span>🪙</span>
+              <span className="hidden xs:inline">RP Total:</span>
+              <span>~{tokenMetrics.fullRoleplayTokens.toLocaleString()}t</span>
+            </span>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-mono shrink-0 ml-auto">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-xs font-mono shrink-0 ml-auto">
+            {/* Preserved Draft Token Counter */}
             <span
-              className="text-cyan-400 bg-cyan-950/50 px-1.5 sm:px-2 py-0.5 rounded border border-cyan-800/40 cursor-help"
+              className="text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-xl border border-cyan-800/40 cursor-help font-semibold shadow-sm"
               title={`Your current message draft: ~${tokenMetrics.draftTokens.toLocaleString()} tokens`}
             >
               Draft: ~{tokenMetrics.draftTokens.toLocaleString()}t
             </span>
+
+            {/* Total sent to LLM Tooltip */}
             <span
-              className="text-purple-300/80 bg-purple-950/50 px-1.5 sm:px-2 py-0.5 rounded border border-purple-800/40 cursor-help hidden xs:inline"
+              className="text-purple-300/80 bg-purple-950/50 px-2 py-1 rounded-xl border border-purple-800/40 cursor-help hidden md:inline"
               title={`LLM Request Payload on Next Turn:\n• System & World Context: ~${tokenMetrics.systemTokens.toLocaleString()} tok\n• Active Window (${tokenMetrics.windowedPlayerTurns} player turns & responses combined / ${tokenMetrics.windowedMessagesCount} msgs): ~${tokenMetrics.windowedHistoryTokens.toLocaleString()} tok\n• Your Draft Message: ~${tokenMetrics.draftTokens.toLocaleString()} tok\n───────────────────────────────\nTotal sent to LLM: ~${tokenMetrics.totalPayloadTokens.toLocaleString()} tok${tokenMetrics.prunedPlayerTurns > 0 ? `\n\nPruned from prompt to save context: ${tokenMetrics.prunedPlayerTurns} older turns (~${tokenMetrics.prunedTokens.toLocaleString()} tok saved)` : '\n\nAll turns currently fit within your player turn memory window!'}`}
             >
               Payload: ~{tokenMetrics.totalPayloadTokens.toLocaleString()}t
@@ -1014,29 +1068,29 @@ export default function StagePanel({
           </div>
         </div>
 
-        {/* Input Capsule Box (Matching Moonlight Echoes Glass Capsule) */}
-        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/75 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-2.5 sm:px-4 py-2 sm:py-2 transition-all">
+        {/* Input Capsule Box (Matching Moonlight Echoes Glass Capsule - Slightly Bigger) */}
+        <form onSubmit={handleSubmit} className="relative flex items-center rounded-2xl sm:rounded-full bg-slate-950/80 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/40 focus-within:border-cyan-400 shadow-2xl px-3 sm:px-5 py-2.5 sm:py-3 transition-all min-h-[58px] sm:min-h-[62px]">
           <div className="p-1.5 text-slate-400 hover:text-cyan-300 cursor-pointer shrink-0 transition-colors hidden xs:block" title="Attach context or item reference">
             <Paperclip className="w-4 h-4" />
           </div>
 
           <textarea
             ref={inputRef}
-            rows={1}
+            rows={2}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
             placeholder={messages.length === 0 ? 'Type action and dialogue in double quotes or pick a world above...' : 'Type your action and dialogue in double quotes...'}
-            className="flex-1 bg-transparent px-2 sm:px-3 py-1.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 max-h-32"
+            className="flex-1 bg-transparent px-2.5 sm:px-3 py-1.5 text-base sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-none font-sans leading-relaxed transition-all disabled:opacity-60 min-h-[44px] max-h-36"
           />
 
           <button
             type="submit"
             disabled={!inputText.trim() || isStreaming}
-            className="h-9 sm:h-10 px-3.5 sm:px-5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 active:scale-95"
+            className="h-10 sm:h-11 px-4 sm:px-6 rounded-xl sm:rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-lg shadow-purple-950/60 flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 active:scale-95 touch-manipulation"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-4 h-4" />
             <span>Turn</span>
           </button>
         </form>

@@ -72,6 +72,7 @@ export async function* streamRoleplayCompletion({
     temperature,
     topP,
     frequencyPenalty,
+    minTokens: samplers.min_tokens ? Number(samplers.min_tokens) : undefined,
     maxTokens,
     extraHeaders: provider === 'openrouter' ? {
       'HTTP-Referer': 'https://rebirth.local',
@@ -92,6 +93,7 @@ async function* streamOpenAICompatible({
   temperature,
   topP,
   frequencyPenalty,
+  minTokens,
   maxTokens,
   extraHeaders = {}
 }) {
@@ -126,6 +128,7 @@ async function* streamOpenAICompatible({
     body: JSON.stringify({
       model,
       messages: chatMessages,
+      ...(minTokens ? { min_tokens: minTokens } : {}),
       max_tokens: maxTokens || 1200,
       temperature,
       top_p: topP,
