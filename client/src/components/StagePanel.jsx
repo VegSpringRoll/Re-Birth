@@ -20,6 +20,9 @@ import {
   Users,
   Globe,
   ChevronRight,
+  History,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import NarrationCard from './NarrationCard.jsx';
 import DialogueBubble from './DialogueBubble.jsx';
@@ -154,6 +157,7 @@ export default function StagePanel({
   const [editingContent, setEditingContent] = useState('');
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showKeyWarning, setShowKeyWarning] = useState(false);
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   // On-Demand Character Action & Yandex Image Inspector
   const [activeInspection, setActiveInspection] = useState(null);
@@ -259,6 +263,28 @@ export default function StagePanel({
     worldState,
     currentInput: inputText,
   });
+
+  // Performance Windowing: Keep only the last 10 user turns (+ their responses) by default
+  const cutoffIndex = useMemo(() => {
+    let count = 0;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === 'user') {
+        count++;
+        if (count === 10) {
+          return i;
+        }
+      }
+    }
+    return 0;
+  }, [messages]);
+
+  const hasHiddenTurns = cutoffIndex > 0;
+  const visibleItems = useMemo(() => {
+    if (showAllHistory || !hasHiddenTurns) {
+      return messages.map((msg, idx) => ({ msg, actualIndex: idx }));
+    }
+    return messages.slice(cutoffIndex).map((msg, idx) => ({ msg, actualIndex: idx + cutoffIndex }));
+  }, [messages, cutoffIndex, showAllHistory, hasHiddenTurns]);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -604,18 +630,47 @@ export default function StagePanel({
           </div>
         )}
 
+        {/* Performance Windowing: Collapsible Earlier Turns Banner */}
+        {hasHiddenTurns && (
+          <div className="flex justify-center my-4 animate-fade-in">
+            {!showAllHistory ? (
+              <button
+                type="button"
+                onClick={() => setShowAllHistory(true)}
+                className="group flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400 text-slate-200 text-xs font-mono font-medium shadow-xl backdrop-blur-xl transition-all hover:scale-[1.02] active:scale-95"
+              >
+                <History className="w-4 h-4 text-cyan-400 group-hover:rotate-[-45deg] transition-transform" />
+                <span>Load Earlier Turns</span>
+                <span className="px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800/40 text-[10px] text-cyan-300 font-bold">
+                  {cutoffIndex} hidden messages ({userTurnsCount - 10} earlier turns)
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-cyan-300" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAllHistory(false)}
+                className="group flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 border border-white/10 text-slate-400 hover:text-slate-200 text-xs font-mono transition-all"
+              >
+                <ChevronUp className="w-3.5 h-3.5 text-purple-400" />
+                <span>Collapse Earlier Turns (Showing Last 10 Turns)</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Message Turns Feed */}
-        {messages.map((msg, index) => {
+        {visibleItems.map(({ msg, actualIndex }) => {
           const isUser = msg.role === 'user';
           const isAssistant = msg.role === 'assistant';
-          const isBeingEdited = editingMsgIndex === index;
-          const isLastMessage = index === messages.length - 1;
+          const isBeingEdited = editingMsgIndex === actualIndex;
+          const isLastMessage = actualIndex === messages.length - 1;
 
           if (isUser) {
             const userTokens = estimateTokens(msg.rawContent || msg.content || '');
 
             return (
-              <div key={index} className="flex justify-end my-5 animate-fade-in group max-w-4xl ml-auto">
+              <div key={actualIndex} className="flex justify-end my-5 animate-fade-in group max-w-4xl ml-auto">
                 <div className="w-full sm:w-auto max-w-2xl">
                   {/* Header */}
                   <div className="flex items-center justify-end gap-2 mb-1.5 px-2">
@@ -658,7 +713,7 @@ export default function StagePanel({
                           Cancel
                         </button>
                         <button
-                          onClick={() => handleSaveEdit(index)}
+                          onClick={() => handleSaveEdit(actualIndex)}
                           className="px-3.5 py-1.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-cyan-950/40"
                         >
                           <Check className="w-3.5 h-3.5" /> Save Changes
@@ -674,23 +729,23 @@ export default function StagePanel({
                       {/* Action buttons on hover */}
                       <div className="absolute right-4 -bottom-3 sm:opacity-0 sm:group-hover/usercard:opacity-100 transition-opacity flex items-center gap-1 bg-slate-950/90 border border-white/10 rounded-full px-2 py-0.5 shadow-xl backdrop-blur-xl">
                         <button
-                          onClick={() => handleStartEdit(index, msg.rawContent)}
+                          onClick={() => handleStartEdit(actualIndex, msg.rawContent)}
                           className="p-1 text-slate-400 hover:text-cyan-300 transition-colors"
                           title="Edit Message"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleCopyMessage(index, msg.rawContent)}
+                          onClick={() => handleCopyMessage(actualIndex, msg.rawContent)}
                           className="p-1 text-slate-400 hover:text-cyan-300 transition-colors"
                           title="Copy text"
                         >
-                          {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedIndex === actualIndex ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                         <button
                           onClick={() => {
                             if (window.confirm('Delete this message turn?')) {
-                              onDeleteMessage(index);
+                              onDeleteMessage(actualIndex);
                             }
                           }}
                           className="p-1 text-slate-400 hover:text-rose-400 transition-colors"
@@ -712,11 +767,11 @@ export default function StagePanel({
               new Set(blocks.filter((b) => b.type === 'say' && b.speaker).map((b) => b.speaker))
             );
             const characterSpeaker = speakingCharacters[0] || (worldState?.universe || 'Simulation Master');
-            const turnNumber = messages.slice(0, index + 1).filter((m) => m.role === 'assistant').length;
+            const turnNumber = messages.slice(0, actualIndex + 1).filter((m) => m.role === 'assistant').length;
             const turnTokens = estimateTokens(msg.rawContent || msg.content || '');
 
             return (
-              <div key={index} className="my-7 animate-fade-in group relative max-w-4xl mx-auto w-full">
+              <div key={actualIndex} className="my-7 animate-fade-in group relative max-w-4xl mx-auto w-full">
                 {/* Header matching Moonlight Echoes: Round avatar, #1 badge, token badge, name, date, actions */}
                 <div className="flex items-center justify-between mb-2.5 px-2">
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -749,7 +804,7 @@ export default function StagePanel({
                   {/* Actions on top right */}
                   <div className="flex items-center gap-1 bg-slate-950/70 border border-white/10 rounded-full px-2 py-0.5 backdrop-blur-xl">
                     <button
-                      onClick={() => handleStartEdit(index, msg.rawContent)}
+                      onClick={() => handleStartEdit(actualIndex, msg.rawContent)}
                       className="p-1 rounded-full text-slate-400 hover:text-cyan-300 transition-colors"
                       title="Edit this turn"
                     >
@@ -766,16 +821,16 @@ export default function StagePanel({
                       </button>
                     )}
                     <button
-                      onClick={() => handleCopyMessage(index, msg.rawContent)}
+                      onClick={() => handleCopyMessage(actualIndex, msg.rawContent)}
                       className="p-1 rounded-full text-slate-400 hover:text-slate-200 transition-colors"
                       title="Copy raw message"
                     >
-                      {copiedIndex === index ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedIndex === actualIndex ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                     <button
                       onClick={() => {
                         if (window.confirm('Delete this turn?')) {
-                          onDeleteMessage(index);
+                          onDeleteMessage(actualIndex);
                         }
                       }}
                       className="p-1 rounded-full text-slate-400 hover:text-rose-400 transition-colors"
@@ -823,7 +878,7 @@ export default function StagePanel({
                           Cancel
                         </button>
                         <button
-                          onClick={() => handleSaveEdit(index)}
+                          onClick={() => handleSaveEdit(actualIndex)}
                           className="px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-cyan-950/40"
                         >
                           <Check className="w-3.5 h-3.5" /> Save Changes

@@ -1,11 +1,62 @@
 import React, { useState, useEffect } from 'react';
 
-// In-memory cache for avatar URLs across renders
+// Persistent localStorage key
+const LOCAL_STORAGE_AVATAR_KEY = 'rebirth_avatar_cache_v2';
+
+// In-memory cache for ultra-fast synchronous lookup across components
 const avatarCache = new Map();
 
+// Initialize in-memory cache from localStorage on script load
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const raw = localStorage.getItem(LOCAL_STORAGE_AVATAR_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        Object.entries(parsed).forEach(([k, v]) => {
+          if (typeof v === 'string' && v) {
+            avatarCache.set(k, v);
+          }
+        });
+      }
+    }
+  }
+} catch (e) {
+  console.warn('[AvatarImage] Could not restore avatar cache from localStorage:', e);
+}
+
+function persistAvatarToStorage(key, url) {
+  try {
+    avatarCache.set(key, url);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = localStorage.getItem(LOCAL_STORAGE_AVATAR_KEY);
+      let parsed = {};
+      if (raw) {
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          parsed = {};
+        }
+      }
+      parsed[key] = url;
+      // Cap cache at 500 items to keep localStorage light
+      const entries = Object.entries(parsed);
+      if (entries.length > 500) {
+        parsed = Object.fromEntries(entries.slice(entries.length - 500));
+      }
+      localStorage.setItem(LOCAL_STORAGE_AVATAR_KEY, JSON.stringify(parsed));
+    }
+  } catch (e) {
+    console.warn('[AvatarImage] Failed saving avatar to localStorage:', e);
+  }
+}
+
 export default function AvatarImage({ src, speaker, universe = 'General Anime', size = 'md', className = '' }) {
-  const [avatarUrl, setAvatarUrl] = useState(() => src || avatarCache.get(`${speaker}_${universe}`) || null);
-  const [loading, setLoading] = useState(!src && !avatarUrl);
+  const cacheKey = speaker ? `${speaker}_${universe}` : null;
+  const initialUrl = src || (cacheKey ? avatarCache.get(cacheKey) : null);
+
+  const [avatarUrl, setAvatarUrl] = useState(initialUrl);
+  const [loading, setLoading] = useState(!src && !initialUrl && !!speaker);
   const [fallbackSrc, setFallbackSrc] = useState(null);
 
   useEffect(() => {
@@ -14,10 +65,13 @@ export default function AvatarImage({ src, speaker, universe = 'General Anime', 
       setLoading(false);
       return;
     }
-    if (!speaker) return;
-    const cacheKey = `${speaker}_${universe}`;
-    if (avatarCache.has(cacheKey)) {
-      setAvatarUrl(avatarCache.get(cacheKey));
+    if (!speaker) {
+      setLoading(false);
+      return;
+    }
+    const key = `${speaker}_${universe}`;
+    if (avatarCache.has(key)) {
+      setAvatarUrl(avatarCache.get(key));
       setLoading(false);
       return;
     }
@@ -30,7 +84,7 @@ export default function AvatarImage({ src, speaker, universe = 'General Anime', 
       .then((data) => {
         if (isMounted) {
           const url = data.avatarUrl || `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(speaker)}&backgroundColor=0f172a,1e1b4b`;
-          avatarCache.set(cacheKey, url);
+          persistAvatarToStorage(key, url);
           setAvatarUrl(url);
           setLoading(false);
         }
@@ -39,6 +93,7 @@ export default function AvatarImage({ src, speaker, universe = 'General Anime', 
         console.warn('Avatar fetch error:', err);
         if (isMounted) {
           const fallback = `https://api.dicebear.com/9.x/lorelei/svg?seed=${encodeURIComponent(speaker)}&backgroundColor=0f172a,1e1b4b`;
+          persistAvatarToStorage(key, fallback);
           setAvatarUrl(fallback);
           setLoading(false);
         }
@@ -47,7 +102,7 @@ export default function AvatarImage({ src, speaker, universe = 'General Anime', 
     return () => {
       isMounted = false;
     };
-  }, [speaker, universe]);
+  }, [src, speaker, universe]);
 
   const sizeClasses = {
     sm: 'w-7 h-7 text-xs',
