@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
+import { renderMarkdownSpans } from './StagePanel.jsx';
 
 export default function NarrationCard({ content, isPartial }) {
   const sanitized = (content || '')
@@ -40,11 +41,11 @@ export default function NarrationCard({ content, isPartial }) {
           {paragraphs.length > 0 ? (
             paragraphs.map((para, i) => (
               <p key={i} className="first-letter:text-lg first-letter:font-semibold first-letter:text-purple-200">
-                {para}
+                {renderMarkdownSpans(para, `narr-${i}`)}
               </p>
             ))
           ) : (
-            <p>{content}</p>
+            <p>{renderMarkdownSpans(content, 'narr-single')}</p>
           )}
         </div>
       </div>

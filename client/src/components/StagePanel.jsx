@@ -763,28 +763,25 @@ export default function StagePanel({
 
           if (isAssistant) {
             const { blocks } = parseRoleplayBlocks(msg.rawContent);
-            const speakingCharacters = Array.from(
-              new Set(blocks.filter((b) => b.type === 'say' && b.speaker).map((b) => b.speaker))
-            );
-            const characterSpeaker = speakingCharacters[0] || (worldState?.universe || 'Simulation Master');
+            const worldTitle = worldState?.universe || session?.universe || 'Simulation World';
             const turnNumber = messages.slice(0, actualIndex + 1).filter((m) => m.role === 'assistant').length;
             const turnTokens = estimateTokens(msg.rawContent || msg.content || '');
 
             return (
               <div key={actualIndex} className="my-7 animate-fade-in group relative max-w-4xl mx-auto w-full">
-                {/* Header matching Moonlight Echoes: Round avatar, #1 badge, token badge, name, date, actions */}
+                {/* Header matching Moonlight Echoes: Round avatar, #1 badge, token badge, world title, date, actions */}
                 <div className="flex items-center justify-between mb-2.5 px-2">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
-                      onClick={() => handleInspectCharacter(characterSpeaker, msg.rawContent)}
+                      onClick={() => handleInspectCharacter(worldTitle, msg.rawContent)}
                       className="cursor-pointer hover:scale-110 active:scale-95 transition-transform"
-                      title={`Click to inspect ${characterSpeaker}'s action & images (Yandex)`}
+                      title={`Click to inspect ${worldTitle} scenes & art (Yandex)`}
                     >
                       <AvatarImage
-                        speaker={characterSpeaker}
-                        universe={worldState?.universe}
+                        speaker={worldTitle}
+                        universe={worldTitle}
                         size="sm"
-                        className="w-7 h-7 rounded-full border border-white/20 hover:border-cyan-400 shadow-md shrink-0 transition-colors"
+                        className="w-7 h-7 rounded-full border border-purple-400/40 hover:border-cyan-400 shadow-md shrink-0 transition-colors"
                       />
                     </div>
                     <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-300">
@@ -794,7 +791,7 @@ export default function StagePanel({
                       {turnTokens}t
                     </span>
                     <span className="text-xs font-bold text-slate-100 font-display truncate">
-                      {characterSpeaker}
+                      {worldTitle}
                     </span>
                     <span className="text-[10px] text-slate-400/80 font-sans hidden md:inline">
                       {new Date(msg.timestamp || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} {new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -927,7 +924,7 @@ export default function StagePanel({
                                   </span>
                                 </div>
                                 <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
-                                  "{block.content}"
+                                  &ldquo;{renderMarkdownSpans((block.content || '').replace(/^["'“]([\s\S]*)["'”]$/, '$1').trim(), `dia-${actualIndex}-${bIdx}`)}&rdquo;
                                 </div>
                               </div>
                             </div>
@@ -970,10 +967,7 @@ export default function StagePanel({
         {/* Streaming Turn (Moonlight Echoes Live Card) */}
         {isStreaming && (() => {
           const { blocks } = parseRoleplayBlocks(streamingContent);
-          const speakingCharacters = Array.from(
-            new Set(blocks.filter((b) => b.type === 'say' && b.speaker).map((b) => b.speaker))
-          );
-          const characterSpeaker = speakingCharacters[0] || (worldState?.universe || 'Simulation Master');
+          const worldTitle = worldState?.universe || session?.universe || 'Simulation World';
           const turnTokens = estimateTokens(streamingContent || '');
 
           return (
@@ -1043,7 +1037,7 @@ export default function StagePanel({
                                 </span>
                               </div>
                               <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
-                                "{block.content}"
+                                &ldquo;{renderMarkdownSpans((block.content || '').replace(/^["'“]([\s\S]*)["'”]$/, '$1').trim(), `stream-dia-${bIdx}`)}&rdquo;
                               </div>
                             </div>
                           </div>

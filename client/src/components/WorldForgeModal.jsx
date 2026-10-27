@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import AvatarImage from './AvatarImage.jsx';
 import { getActiveProvider, getStoredApiKeys, getStoredModels } from '../utils/storage.js';
-import { getStoredPersonas, getActivePersona } from '../utils/personaStorage.js';
+import { getStoredPersonas, getActivePersona, saveActivePersonaId } from '../utils/personaStorage.js';
 
 export function getGoldStandardTemplate(worldName = 'this anime') {
   return `<role>
@@ -118,19 +118,30 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
   };
 
   useEffect(() => {
+    const syncPersonas = () => {
+      const allPersonas = getStoredPersonas();
+      setSavedPersonas(allPersonas);
+      const activeP = getActivePersona();
+      if (activeP) {
+        setSelectedPersonaId(activeP.id);
+        setCharacterName(activeP.name);
+        setCharacterConcept(activeP.traits);
+      }
+    };
+
     if (isOpen) {
       setStep('select');
       setIsCustomMode(false);
       setCustomBriefingError('');
       setCustomUniverseTitle('');
       setShowSystemPrompt(false);
-      const allPersonas = getStoredPersonas();
-      setSavedPersonas(allPersonas);
-      const activeP = getActivePersona();
-      setSelectedPersonaId(activeP?.id || allPersonas[0]?.id);
-      setCharacterName(activeP?.name || 'Patrick Yokam');
-      setCharacterConcept(activeP?.traits || 'Perceptive sovereign');
+      syncPersonas();
       fetchPresets();
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('persona_storage_updated', syncPersonas);
+      return () => window.removeEventListener('persona_storage_updated', syncPersonas);
     }
   }, [isOpen]);
 
@@ -485,10 +496,16 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                       onClose();
                       if (onOpenPersonaModal) onOpenPersonaModal();
                     }}
-                    className="text-cyan-300 font-bold text-xs hover:underline flex items-center gap-1 bg-cyan-950/70 px-2 py-1 rounded-lg border border-cyan-500/35 truncate active:scale-95"
+                    className="text-cyan-300 font-bold text-xs hover:underline flex items-center gap-1.5 bg-cyan-950/70 px-2.5 py-1 rounded-lg border border-cyan-500/35 truncate active:scale-95 shadow-sm"
                     title="Setup Protagonist Persona & OC Moves"
                   >
-                    <User className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <AvatarImage
+                      src={getActivePersona()?.avatar}
+                      speaker={getActivePersona()?.name || 'Protagonist OC'}
+                      universe="General Anime"
+                      size="sm"
+                      className="w-4 h-4 rounded-full object-cover shrink-0 border border-cyan-400/50"
+                    />
                     <span className="truncate">{getActivePersona().name || 'Protagonist OC'}</span>
                   </button>
                 </div>
@@ -851,6 +868,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                         key={p.id}
                         onClick={() => {
                           setSelectedPersonaId(p.id);
+                          saveActivePersonaId(p.id);
                           setCharacterName(p.name);
                           setCharacterConcept(p.traits);
                         }}
@@ -861,6 +879,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
                         }`}
                       >
                         <AvatarImage
+                          src={p.avatar}
                           speaker={p.name}
                           universe="General Anime"
                           size="sm"
