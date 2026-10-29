@@ -22,7 +22,7 @@ import {
   Key,
 } from 'lucide-react';
 import AvatarImage from './AvatarImage.jsx';
-import { getActiveProvider, getStoredApiKeys, getStoredModels } from '../utils/storage.js';
+import { getActiveProvider, getStoredApiKeys, getStoredModels, getPrimaryApiConfig } from '../utils/storage.js';
 import { getStoredPersonas, getActivePersona, saveActivePersonaId } from '../utils/personaStorage.js';
 
 export function getGoldStandardTemplate(worldName = 'this anime') {
@@ -152,26 +152,25 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
 
     setLoreVerification({ loading: true, verified: false, response: '', error: '' });
 
-    const provider = getActiveProvider();
-    const apiKeys = getStoredApiKeys();
-    const models = getStoredModels();
-    const apiKey = apiKeys[provider] || '';
-    const model = models[provider] || '';
+    const apiConfig = getPrimaryApiConfig();
 
     try {
       const res = await fetch('/api/models/verify-lore', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'x-provider': provider,
-          'x-model': model,
+          'x-api-key': apiConfig.apiKey,
+          'x-provider': apiConfig.provider,
+          'x-model': apiConfig.model,
+          'x-custom-proxy-url': apiConfig.customBaseUrl,
         },
         body: JSON.stringify({
           universe: worldName,
-          provider,
-          apiKey,
-          model,
+          apiConfig,
+          provider: apiConfig.provider,
+          apiKey: apiConfig.apiKey,
+          model: apiConfig.model,
+          customBaseUrl: apiConfig.customBaseUrl,
         }),
       });
 
@@ -183,7 +182,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
         data = null;
       }
 
-      if (res.ok && data?.success) {
+      if (res.ok && data?.success && data?.response) {
         setLoreVerification({
           loading: false,
           verified: data.verified ?? true,
@@ -191,11 +190,12 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
           error: '',
         });
       } else {
+        const errMsg = data?.error || data?.message || (!apiConfig.apiKey ? 'Please connect an API key in Samplers to run live AI audits.' : 'Failed generating canon lore audit.');
         setLoreVerification({
           loading: false,
           verified: false,
-          response: typeof data?.response === 'string' ? data.response : `Please connect an API key in Settings to run the live AI canon audit for ${worldName}.`,
-          error: typeof data?.message === 'string' ? data.message : '',
+          response: typeof data?.response === 'string' && data.response ? data.response : `⚠️ ${errMsg}`,
+          error: errMsg,
         });
       }
     } catch (err) {
@@ -239,22 +239,26 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
     setCustomBriefingError('');
     setCustomBriefingLoading(true);
 
-    const provider = getActiveProvider();
-    const apiKeys = getStoredApiKeys();
-    const models = getStoredModels();
-    const apiKey = apiKeys[provider] || '';
-    const model = models[provider] || '';
+    const apiConfig = getPrimaryApiConfig();
 
     try {
       const res = await fetch('/api/sessions/custom-briefing', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'x-provider': provider,
-          'x-model': model,
+          'x-api-key': apiConfig.apiKey,
+          'x-provider': apiConfig.provider,
+          'x-model': apiConfig.model,
+          'x-custom-proxy-url': apiConfig.customBaseUrl,
         },
-        body: JSON.stringify({ universeTitle: title }),
+        body: JSON.stringify({
+          universeTitle: title,
+          apiConfig,
+          provider: apiConfig.provider,
+          apiKey: apiConfig.apiKey,
+          model: apiConfig.model,
+          customBaseUrl: apiConfig.customBaseUrl,
+        }),
       });
 
       let data = null;

@@ -1,4 +1,5 @@
 import express from 'express';
+import { streamRoleplayCompletion } from '../services/llmService.js';
 
 const router = express.Router();
 
@@ -676,13 +677,14 @@ router.post('/test', async (req, res) => {
 
 /**
  * POST /api/models/verify-lore
- * Runs internal command auditing AI lore knowledge before beginning roleplay
+ * Runs internal audit using the primary BYOK LLM to prove canon lore mastery before roleplay starts
  */
 router.post('/verify-lore', async (req, res) => {
-  const { universe } = req.body;
-  const provider = req.body.provider || req.headers['x-provider'] || 'openrouter';
-  const apiKey = req.body.apiKey || req.headers['x-api-key'];
-  const model = req.body.model || req.headers['x-model'];
+  const { universe, apiConfig = {} } = req.body;
+  const provider = apiConfig.provider || req.body.provider || req.headers['x-provider'] || 'openrouter';
+  const apiKey = apiConfig.apiKey || req.body.apiKey || req.headers['x-api-key'];
+  const model = apiConfig.model || req.body.model || req.headers['x-model'];
+  const customBaseUrl = apiConfig.customBaseUrl || req.body.customBaseUrl || req.headers['x-custom-proxy-url'];
 
   const worldName = (universe || 'this anime').trim();
   const testQuestion = `Before we start the roleplay , How familiar you are with This ${worldName} verse world lore , characters , character appearances , threats and everything for a text based roleplay . i want proof that you have detailed knowledge of the verse because i am serious for this roleplay.`;
@@ -691,7 +693,7 @@ router.post('/verify-lore', async (req, res) => {
     return res.json({
       success: false,
       verified: false,
-      response: `⚠️ API Key not connected. Please connect your API key in 'Samplers & Moves' so the AI can execute this live canon lore audit and prove its knowledge of ${worldName}.`,
+      response: `⚠️ API Key not connected. Please connect your API key in 'Samplers & Moves' so the primary AI model can execute this live canon lore audit and prove its knowledge of ${worldName}.`,
       offlinePreview: true
     });
   }
@@ -699,7 +701,6 @@ router.post('/verify-lore', async (req, res) => {
   const cleanKey = apiKey.trim();
 
   try {
-    let responseText = '';
     const systemPrompt = `You are an elite anime simulation engine and canon lore master. The user is assessing your deep and granular familiarity with the "${worldName}" universe before beginning a serious text roleplay.
 Answer the user's inquiry directly, thoroughly, and authentically. Provide undeniable proof that you possess exhaustive knowledge of ${worldName}:
 - Specific key characters, their canonical visual appearances, psychological traits, relationships, and vocal mannerisms.
@@ -708,180 +709,35 @@ Answer the user's inquiry directly, thoroughly, and authentically. Provide unden
 - Distinct atmospheric tone, geographical landmarks, and canon aesthetic.
 Write in an articulate, confident director voice. Demonstrate true canonical mastery with concrete names, techniques, and narrative elements from ${worldName}.`;
 
-    if (provider === 'openrouter') {
-      const selectedModel = model || 'anthropic/claude-3.5-sonnet';
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${cleanKey}`,
-          'HTTP-Referer': 'https://rebirth.local',
-          'X-Title': 'Re-Birth Roleplay Engine',
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: testQuestion }
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices?.[0]?.message?.content?.trim();
-      }
-    } else if (provider === 'groq') {
-      const selectedModel = model || 'llama-3.3-70b-versatile';
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${cleanKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: testQuestion }
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices?.[0]?.message?.content?.trim();
-      }
-    } else if (provider === 'mistral') {
-      const selectedModel = model || 'mistral-large-latest';
-      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${cleanKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: testQuestion }
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices?.[0]?.message?.content?.trim();
-      }
-    } else if (provider === 'custom') {
-      const customBaseUrl = (req.body.customBaseUrl || req.headers['x-custom-proxy-url'] || 'http://localhost:11434/v1').replace(/\/+$/, '');
-      const selectedModel = model || 'default';
-      const response = await fetch(`${customBaseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(cleanKey ? { Authorization: `Bearer ${cleanKey}` } : {}),
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: testQuestion }
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices?.[0]?.message?.content?.trim();
-      }
-    } else if (provider === 'openai') {
-      const selectedModel = model || 'gpt-4o-mini';
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${cleanKey}`,
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: testQuestion }
-          ],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.choices?.[0]?.message?.content?.trim();
-      }
-    } else if (provider === 'gemini') {
-      const selectedModel = model || 'gemini-1.5-flash';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${cleanKey}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${systemPrompt}\n\nUser Question: ${testQuestion}` }] }
-          ],
-          generationConfig: { maxOutputTokens: 700, temperature: 0.7 },
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      }
-    } else if (provider === 'anthropic') {
-      const selectedModel = model || 'claude-3-5-haiku-20241022';
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': cleanKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: selectedModel,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: testQuestion }],
-          max_tokens: 700,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        responseText = data.content?.[0]?.text?.trim();
-      }
+    let responseText = '';
+    for await (const token of streamRoleplayCompletion({
+      systemPrompt,
+      messages: [{ role: 'user', rawContent: testQuestion }],
+      samplers: { temperature: 0.7, top_p: 0.95, max_tokens: 2500 },
+      apiConfig: { apiKey: cleanKey, provider, model, customBaseUrl },
+    })) {
+      responseText += token;
     }
 
-    if (!responseText) {
-      responseText = `I have extensive, granular knowledge of ${worldName}: its magic system, characters, and aesthetic rules.`;
+    if (!responseText.trim()) {
+      return res.json({
+        success: false,
+        verified: false,
+        response: `⚠️ The model returned an empty response. Please verify your model selection (${provider} / ${model || 'default'}) and API key quota.`,
+      });
     }
 
     return res.json({
       success: true,
       verified: true,
-      response: responseText,
+      response: responseText.trim(),
     });
   } catch (err) {
+    console.error('[VerifyLore] Error executing audit with primary model:', err.message);
     return res.json({
-      success: true,
+      success: false,
       verified: false,
-      response: `Failed to complete live audit: ${err.message}`,
+      response: `⚠️ AI Lore Audit Failed: ${err.message}. Please check your ${provider} API key and model selection.`,
       error: err.message,
     });
   }

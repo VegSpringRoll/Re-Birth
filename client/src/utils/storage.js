@@ -221,6 +221,40 @@ export function saveStoredCustomProxyUrl(url) {
   } catch (e) {}
 }
 
+/**
+ * Returns the active primary BYOK API configuration for world briefings and canon audits
+ */
+export function getPrimaryApiConfig() {
+  const provider = getActiveProvider() || 'openrouter';
+  const keys = getStoredApiKeys() || {};
+  const models = getStoredModels() || {};
+  const customBaseUrl = getStoredCustomProxyUrl() || 'http://localhost:11434/v1';
+
+  let apiKey = keys[provider] || '';
+  let model = models[provider] || '';
+
+  // Fallback: If the selected provider has no key entered, find any provider that has a valid key
+  if (!apiKey && provider !== 'custom') {
+    for (const p of ['openrouter', 'groq', 'gemini', 'openai', 'mistral', 'anthropic']) {
+      if (keys[p] && keys[p].trim()) {
+        return {
+          provider: p,
+          apiKey: keys[p].trim(),
+          model: models[p] || '',
+          customBaseUrl,
+        };
+      }
+    }
+  }
+
+  return {
+    provider,
+    apiKey: apiKey ? apiKey.trim() : '',
+    model: model ? model.trim() : '',
+    customBaseUrl,
+  };
+}
+
 const DEFAULT_API_PROFILES = [];
 
 const DUMMY_PROFILE_IDS = [

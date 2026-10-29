@@ -40,7 +40,7 @@ import {
   getStoredCustomProxyUrl
 } from '../utils/storage.js';
 
-import { getActivePersona } from '../utils/personaStorage.js';
+import { getActivePersona, getStoredPersonas } from '../utils/personaStorage.js';
 
 /**
  * Formats inline markdown (***bold italics***, **bold**, *italics*, _italics_)
@@ -398,6 +398,34 @@ export default function StagePanel({
   const activePersona = getActivePersona();
   const userName = session?.userProfile?.name || activePersona?.name || 'Protagonist';
   const userAvatar = session?.userProfile?.avatar || activePersona?.avatar;
+
+  const isProtagonistSpeaker = (speaker) => {
+    if (!speaker) return false;
+    const sClean = speaker.trim().toLowerCase();
+    if (['you', 'user', 'me', 'protagonist', 'player'].includes(sClean)) return true;
+    if (userName && sClean === userName.trim().toLowerCase()) return true;
+    if (activePersona?.name && sClean === activePersona.name.trim().toLowerCase()) return true;
+    try {
+      const all = getStoredPersonas();
+      if (Array.isArray(all)) {
+        return all.some((p) => p.name && p.name.trim().toLowerCase() === sClean);
+      }
+    } catch (e) {}
+    return false;
+  };
+
+  const getProtagonistAvatar = (speaker) => {
+    if (userAvatar) return userAvatar;
+    if (activePersona?.avatar) return activePersona.avatar;
+    try {
+      const all = getStoredPersonas();
+      if (Array.isArray(all)) {
+        const matched = all.find((p) => p.name && p.name.trim().toLowerCase() === (speaker || '').trim().toLowerCase());
+        if (matched?.avatar) return matched.avatar;
+      }
+    } catch (e) {}
+    return userAvatar || activePersona?.avatar || '';
+  };
   const parsedStreaming = streamingContent ? parseRoleplayBlocks(streamingContent) : null;
   const bgTheme = getUniverseBackground(worldState?.universe);
 
@@ -893,34 +921,66 @@ export default function StagePanel({
                           );
                         }
                         if (block.type === 'say') {
+                          const isUserChar = isProtagonistSpeaker(block.speaker);
+                          const avatarSrc = isUserChar ? getProtagonistAvatar(block.speaker) : undefined;
+
                           return (
                             <div
                               key={bIdx}
                               onMouseEnter={() => setHoveredSpeaker(block.speaker)}
-                              className="my-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/85 border border-cyan-500/25 backdrop-blur-xl flex items-start gap-3 sm:gap-4 shadow-lg group/say transition-all hover:border-cyan-400/40"
+                              className={`my-3.5 p-3.5 sm:p-4 rounded-2xl backdrop-blur-xl flex items-start gap-3 sm:gap-4 shadow-lg group/say transition-all ${
+                                isUserChar
+                                  ? 'bg-gradient-to-r from-slate-900/95 via-cyan-950/20 to-slate-900/90 border border-cyan-400/50 shadow-cyan-950/30'
+                                  : 'bg-slate-900/85 border border-cyan-500/25 hover:border-cyan-400/40'
+                              }`}
                             >
                               <div
-                                onClick={() => handleInspectCharacter(block.speaker, msg.rawContent || block.content)}
+                                onClick={() => {
+                                  if (isUserChar && onOpenPersonaModal) {
+                                    onOpenPersonaModal();
+                                  } else {
+                                    handleInspectCharacter(block.speaker, msg.rawContent || block.content);
+                                  }
+                                }}
                                 className="relative shrink-0 self-start cursor-pointer group/avatar hover:scale-105 active:scale-95 transition-transform"
-                                title={`Click to inspect ${block.speaker}'s scene action & images (Yandex)`}
+                                title={
+                                  isUserChar
+                                    ? `Protagonist OC: ${block.speaker} (Click to edit Persona)`
+                                    : `Click to inspect ${block.speaker}'s scene action & images (Yandex)`
+                                }
                               >
                                 <AvatarImage
+                                  src={avatarSrc}
                                   speaker={block.speaker}
                                   universe={worldState?.universe}
                                   size="lg"
-                                  className="w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
+                                  className={`w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border shadow-md ring-1 transition-all ${
+                                    isUserChar
+                                      ? 'border-cyan-400 ring-cyan-400/50 shadow-cyan-950/60'
+                                      : 'border-cyan-400/30 group-hover/avatar:border-cyan-400 ring-cyan-500/25 group-hover/say:scale-105'
+                                  }`}
                                 />
-                                <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
-                                  NPC
-                                </span>
+                                {isUserChar ? (
+                                  <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-600 to-indigo-600 text-white border border-cyan-400 font-bold shadow-md">
+                                    YOU
+                                  </span>
+                                ) : (
+                                  <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
+                                    NPC
+                                  </span>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                  <span className="text-xs sm:text-sm font-bold font-display text-cyan-300 tracking-wide">
+                                  <span className={`text-xs sm:text-sm font-bold font-display tracking-wide ${isUserChar ? 'text-cyan-200' : 'text-cyan-300'}`}>
                                     {block.speaker}
                                   </span>
-                                  <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-400 border border-cyan-800/40 font-semibold tracking-wider">
-                                    Dialogue
+                                  <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded-full font-semibold tracking-wider ${
+                                    isUserChar
+                                      ? 'bg-gradient-to-r from-cyan-950/90 to-indigo-950/90 text-cyan-300 border border-cyan-500/50 shadow-sm'
+                                      : 'bg-cyan-950/80 text-cyan-400 border border-cyan-800/40'
+                                  }`}>
+                                    {isUserChar ? 'Protagonist' : 'Dialogue'}
                                   </span>
                                 </div>
                                 <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">
@@ -1006,34 +1066,66 @@ export default function StagePanel({
                         );
                       }
                       if (block.type === 'say') {
+                        const isUserChar = isProtagonistSpeaker(block.speaker);
+                        const avatarSrc = isUserChar ? getProtagonistAvatar(block.speaker) : undefined;
+
                         return (
                           <div
                             key={`stream-${bIdx}`}
                             onMouseEnter={() => setHoveredSpeaker(block.speaker)}
-                            className="my-3.5 p-3.5 sm:p-4 rounded-2xl bg-slate-900/85 border border-cyan-500/25 backdrop-blur-xl flex items-start gap-3 sm:gap-4 shadow-lg group/say transition-all hover:border-cyan-400/40"
+                            className={`my-3.5 p-3.5 sm:p-4 rounded-2xl backdrop-blur-xl flex items-start gap-3 sm:gap-4 shadow-lg group/say transition-all ${
+                              isUserChar
+                                ? 'bg-gradient-to-r from-slate-900/95 via-cyan-950/20 to-slate-900/90 border border-cyan-400/50 shadow-cyan-950/30'
+                                : 'bg-slate-900/85 border border-cyan-500/25 hover:border-cyan-400/40'
+                            }`}
                           >
                             <div
-                              onClick={() => handleInspectCharacter(block.speaker, streamingContent || block.content)}
+                              onClick={() => {
+                                if (isUserChar && onOpenPersonaModal) {
+                                  onOpenPersonaModal();
+                                } else {
+                                  handleInspectCharacter(block.speaker, streamingContent || block.content);
+                                }
+                              }}
                               className="relative shrink-0 self-start cursor-pointer group/avatar hover:scale-105 active:scale-95 transition-transform"
-                              title={`Click to inspect ${block.speaker}'s scene action & images (Yandex)`}
+                              title={
+                                isUserChar
+                                  ? `Protagonist OC: ${block.speaker} (Click to edit Persona)`
+                                  : `Click to inspect ${block.speaker}'s scene action & images (Yandex)`
+                              }
                             >
                               <AvatarImage
+                                src={avatarSrc}
                                 speaker={block.speaker}
                                 universe={worldState?.universe}
                                 size="lg"
-                                className="w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border border-cyan-400/30 group-hover/avatar:border-cyan-400 shadow-md ring-1 ring-cyan-500/25 group-hover/say:scale-105 transition-all"
+                                className={`w-12 h-12 sm:w-16 sm:h-20 rounded-2xl object-cover object-top border shadow-md ring-1 transition-all ${
+                                  isUserChar
+                                    ? 'border-cyan-400 ring-cyan-400/50 shadow-cyan-950/60'
+                                    : 'border-cyan-400/30 group-hover/avatar:border-cyan-400 ring-cyan-500/25 group-hover/say:scale-105'
+                                }`}
                               />
-                              <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
-                                NPC
-                              </span>
+                              {isUserChar ? (
+                                <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-gradient-to-r from-cyan-600 to-indigo-600 text-white border border-cyan-400 font-bold shadow-md">
+                                  YOU
+                                </span>
+                              ) : (
+                                <span className="absolute -bottom-1 -right-1 text-[8px] font-mono uppercase px-1.5 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold shadow-sm group-hover/avatar:bg-cyan-600 group-hover/avatar:text-white transition-colors">
+                                  NPC
+                                </span>
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1.5">
-                                <span className="text-xs sm:text-sm font-bold font-display text-cyan-300 tracking-wide">
+                                <span className={`text-xs sm:text-sm font-bold font-display tracking-wide ${isUserChar ? 'text-cyan-200' : 'text-cyan-300'}`}>
                                   {block.speaker}
                                 </span>
-                                <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-400 border border-cyan-800/40 font-semibold tracking-wider">
-                                  Dialogue
+                                <span className={`text-[9px] font-mono uppercase px-2 py-0.5 rounded-full font-semibold tracking-wider ${
+                                  isUserChar
+                                    ? 'bg-gradient-to-r from-cyan-950/90 to-indigo-950/90 text-cyan-300 border border-cyan-500/50 shadow-sm'
+                                    : 'bg-cyan-950/80 text-cyan-400 border border-cyan-800/40'
+                                }`}>
+                                  {isUserChar ? 'Protagonist' : 'Dialogue'}
                                 </span>
                               </div>
                               <div className="text-[15px] sm:text-[15.5px] text-slate-100 leading-relaxed font-sans font-medium">

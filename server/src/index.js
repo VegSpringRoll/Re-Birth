@@ -12,6 +12,7 @@ import worldStateRoutes from './routes/worldState.js';
 import modelRoutes from './routes/models.js';
 import characterActionRoutes from './routes/characterAction.js';
 import settingsRoutes from './routes/settings.js';
+import bgmRoutes from './routes/bgm.js';
 import { Session } from './models/Session.js';
 import { WorldState } from './models/WorldState.js';
 
@@ -37,6 +38,7 @@ app.use('/api/world-state', worldStateRoutes);
 app.use('/api/models', modelRoutes);
 app.use('/api/character-action', characterActionRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/bgm', bgmRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

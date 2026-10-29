@@ -13,10 +13,11 @@ const router = express.Router();
  * Note: Scenario Start is NOT AI-generated (user supplies raw prompt).
  */
 router.post('/custom-briefing', async (req, res) => {
-  const { universeTitle } = req.body;
-  const apiKey = req.headers['x-api-key'] || req.body.apiKey;
-  const provider = req.headers['x-provider'] || req.body.provider || 'openrouter';
-  const model = req.headers['x-model'] || req.body.model;
+  const { universeTitle, apiConfig = {} } = req.body;
+  const apiKey = apiConfig.apiKey || req.headers['x-api-key'] || req.body.apiKey;
+  const provider = apiConfig.provider || req.headers['x-provider'] || req.body.provider || 'openrouter';
+  const model = apiConfig.model || req.headers['x-model'] || req.body.model;
+  const customBaseUrl = apiConfig.customBaseUrl || req.headers['x-custom-proxy-url'] || req.body.customBaseUrl;
 
   if (!universeTitle?.trim()) {
     return res.status(400).json({ error: 'universeTitle is required' });
@@ -25,28 +26,29 @@ router.post('/custom-briefing', async (req, res) => {
   if (!apiKey?.trim()) {
     return res.status(401).json({
       error: 'API_KEY_NOT_CONNECTED',
-      message: 'Please connect an API key (OpenRouter, Anthropic, OpenAI, or Gemini) in Samplers & Moves to get an AI-generated world briefing.',
+      message: 'Please connect an API key (OpenRouter, Anthropic, OpenAI, Gemini, or Groq) in Samplers & Moves to get an AI-generated world briefing.',
     });
   }
 
   try {
-    const systemPrompt = `You are an anime world knowledge engine. When given an anime, manga, light novel, movie, or gaming universe, you provide a factual summary and chronological timeline arcs in JSON format. Always respond ONLY with a JSON object, no markdown fences.`;
+    const systemPrompt = `You are an elite anime world knowledge engine and canon archivist. When given an anime, manga, light novel, movie, or gaming universe, you provide a comprehensive factual summary and sequential canonical story arcs/chapters in strict JSON format. Respond ONLY with a valid JSON object.`;
 
     const userMsg = `Universe: "${universeTitle.trim()}"
 
-Return a JSON object with these exact fields:
+Provide canon story arcs, factual synopsis, and key canon NPCs for "${universeTitle.trim()}". Return a valid JSON object matching this exact schema:
 {
-  "synopsis": "A 120-140 word factual description of this universe's world, its power system or magic, major factions, and canon tone.",
+  "synopsis": "A detailed 120-160 word factual description of this universe, its power/magic system, major factions, and canon atmosphere.",
   "timelines": [
-    { "id": "arc1", "label": "Arc 1: Chronological Arc Name", "era": "Full canonical era description", "date": "In-world date or year" },
-    { "id": "arc2", "label": "Arc 2: Chronological Arc Name", "era": "Full canonical era description", "date": "In-world date or year" },
-    { "id": "arc3", "label": "Arc 3: Chronological Arc Name", "era": "Full canonical era description", "date": "In-world date or year" },
-    { "id": "arc4", "label": "Arc 4: Chronological Arc Name", "era": "Full canonical era description", "date": "In-world date or year" }
+    { "id": "arc1", "label": "Canonical Arc 1 Name", "era": "Detailed in-universe arc/era description", "date": "Chronological period or year" },
+    { "id": "arc2", "label": "Canonical Arc 2 Name", "era": "Detailed in-universe arc/era description", "date": "Chronological period or year" },
+    { "id": "arc3", "label": "Canonical Arc 3 Name", "era": "Detailed in-universe arc/era description", "date": "Chronological period or year" },
+    { "id": "arc4", "label": "Canonical Arc 4 Name", "era": "Detailed in-universe arc/era description", "date": "Chronological period or year" }
   ],
   "knownNPCs": [
-    { "name": "Character name", "relation": "Role / relation to player", "status": "Current canon activity" },
-    { "name": "Character name 2", "relation": "Role / relation to player 2", "status": "Current canon activity" },
-    { "name": "Character name 3", "relation": "Role / relation to player 3", "status": "Current canon activity" }
+    { "name": "Key Canon Character 1", "relation": "Affiliation & Role", "status": "Canon location & status" },
+    { "name": "Key Canon Character 2", "relation": "Affiliation & Role", "status": "Canon location & status" },
+    { "name": "Key Canon Character 3", "relation": "Affiliation & Role", "status": "Canon location & status" },
+    { "name": "Key Canon Character 4", "relation": "Affiliation & Role", "status": "Canon location & status" }
   ]
 }`;
 
@@ -54,8 +56,8 @@ Return a JSON object with these exact fields:
     for await (const token of streamRoleplayCompletion({
       systemPrompt,
       messages: [{ role: 'user', rawContent: userMsg }],
-      samplers: { temperature: 0.3, top_p: 0.9 },
-      apiConfig: { apiKey, provider, model },
+      samplers: { temperature: 0.3, top_p: 0.95, max_tokens: 2500 },
+      apiConfig: { apiKey, provider, model, customBaseUrl },
     })) {
       fullText += token;
     }
@@ -63,13 +65,14 @@ Return a JSON object with these exact fields:
     // Extract strictly the outermost JSON object from fullText
     let parsed = null;
     try {
-      const firstBrace = fullText.indexOf('{');
-      const lastBrace = fullText.lastIndexOf('}');
+      let cleanText = fullText.replace(/```(?:json)?\s*/gi, '').replace(/```\s*$/gi, '').trim();
+      const firstBrace = cleanText.indexOf('{');
+      const lastBrace = cleanText.lastIndexOf('}');
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        let clean = fullText.slice(firstBrace, lastBrace + 1).trim();
+        let jsonStr = cleanText.slice(firstBrace, lastBrace + 1).trim();
         // Strip trailing commas before closing brackets
-        clean = clean.replace(/,\s*([}\]])/g, '$1');
-        parsed = JSON.parse(clean);
+        jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+        parsed = JSON.parse(jsonStr);
       }
     } catch (parseErr) {
       console.warn('[CustomBriefing] JSON parse warning, salvaging via heuristic:', parseErr.message);
@@ -81,12 +84,12 @@ Return a JSON object with these exact fields:
       parsed = {
         synopsis,
         timelines: [
-          { id: 'arc1', label: 'Chapter 1: The Journey Begins', era: 'Chapter 1: The Journey Begins', date: 'Year 1, Mid-Autumn' },
-          { id: 'arc2', label: 'Chapter 2: Escalating Shadows', era: 'Chapter 2: Escalating Shadows', date: 'Year 2, Winter' },
-          { id: 'arc3', label: 'Chapter 3: Climax & Clashes', era: 'Chapter 3: Climax & Clashes', date: 'Year 3, Spring' }
+          { id: 'arc1', label: `${universeTitle.trim()} Arc 1: The Beginning`, era: `Opening canon arc of ${universeTitle.trim()}`, date: 'Chapter 1' },
+          { id: 'arc2', label: `${universeTitle.trim()} Arc 2: Rising Threats`, era: `Mid-canon conflicts in ${universeTitle.trim()}`, date: 'Chapter 2' },
+          { id: 'arc3', label: `${universeTitle.trim()} Arc 3: Climax & Apex`, era: `Climactic events of ${universeTitle.trim()}`, date: 'Chapter 3' }
         ],
         knownNPCs: [
-          { name: `${universeTitle.trim()} Figure`, relation: 'Canon Figure', status: 'Active in sector' }
+          { name: `${universeTitle.trim()} Canon Figure`, relation: 'Canon Figure', status: 'Active in sector' }
         ]
       };
     }
@@ -94,8 +97,9 @@ Return a JSON object with these exact fields:
     res.json(parsed);
   } catch (err) {
     console.error('[CustomBriefing] Error:', err.message);
-    // Return graceful fallback rather than failing
     res.json({
+      error: err.message,
+      message: `Failed generating AI briefing: ${err.message}`,
       synopsis: `The world of ${universeTitle.trim()}. Step through the boundary and forge your story.`,
       timelines: [
         { id: 'arc1', label: 'Chapter 1: The Journey Begins', era: 'Chapter 1: The Journey Begins', date: 'Year 1, Mid-Autumn' },

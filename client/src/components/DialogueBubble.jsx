@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AvatarImage from './AvatarImage.jsx';
 import { MoreHorizontal, Copy, Edit3, Trash2, Check } from 'lucide-react';
 import { renderMarkdownSpans } from './StagePanel.jsx';
+import { getActivePersona, getStoredPersonas } from '../utils/personaStorage.js';
 
 export default function DialogueBubble({
   speaker,
@@ -61,10 +62,41 @@ export default function DialogueBubble({
     setMenuOpen(false);
   };
 
+  const activePersona = getActivePersona();
+  const isProtagonist = () => {
+    if (!speaker) return false;
+    const sClean = speaker.trim().toLowerCase();
+    if (['you', 'user', 'me', 'protagonist', 'player'].includes(sClean)) return true;
+    if (activePersona?.name && sClean === activePersona.name.trim().toLowerCase()) return true;
+    try {
+      const all = getStoredPersonas();
+      if (Array.isArray(all)) {
+        return all.some((p) => p.name && p.name.trim().toLowerCase() === sClean);
+      }
+    } catch (e) {}
+    return false;
+  };
+
+  const getAvatarSrc = () => {
+    if (!isProtagonist()) return undefined;
+    if (activePersona?.avatar) return activePersona.avatar;
+    try {
+      const all = getStoredPersonas();
+      if (Array.isArray(all)) {
+        const matched = all.find((p) => p.name && p.name.trim().toLowerCase() === (speaker || '').trim().toLowerCase());
+        if (matched?.avatar) return matched.avatar;
+      }
+    } catch (e) {}
+    return activePersona?.avatar || '';
+  };
+
+  const avatarSrc = getAvatarSrc();
+
   return (
     <div className="my-4 flex items-start gap-3.5 sm:gap-4 animate-fade-in group max-w-4xl">
       {/* Portrait Avatar (Square with rounded corners) */}
       <AvatarImage
+        src={avatarSrc}
         speaker={speaker}
         universe={universe}
         size="md"
