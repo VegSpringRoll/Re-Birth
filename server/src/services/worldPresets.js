@@ -397,6 +397,6 @@ export function generateCustomWorldTemplate({
 - Horizon Pierce: Concentrates mana/kinetic force into an instantaneous armor-shattering strike.
 - Resonance Surge: Synchronizes with the core laws of ${cleanUniverse} to temporarily multiply combat stats.`,
     knownNPCs: defaultNPCs,
-    openingScenario: customScenario?.trim() || `I arrive at ${startingLocation?.trim() || 'the area'}.`
+    openingScenario: (customScenario || '').trim(),
   };
 }

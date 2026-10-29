@@ -411,7 +411,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
     setLoading(true);
     try {
       const activeLocation = (scenarioLocation || '').trim() || `${selectedPreset?.universe || 'Anime Realm'} Horizon`;
-      const activePrompt = (scenarioPrompt || '').trim() || `I arrive at ${activeLocation}.`;
+      const activePrompt = (scenarioPrompt || '').trim();
 
       const currentPersona = savedPersonas.find((p) => p.id === selectedPersonaId) || savedPersonas[0];
       const rawAvatar = currentPersona?.avatar || '';

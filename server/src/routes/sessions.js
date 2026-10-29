@@ -496,7 +496,7 @@ router.post('/forge', async (req, res) => {
     const inGameDate = chosenTimeline?.date || template.inGameDate || 'Year 1, Mid-Autumn';
     const location = chosenScenario?.location || template.currentLocation;
     const weather = chosenScenario?.weather || template.weather;
-    const spawnPrompt = chosenScenario?.prompt || `I arrive at ${location}.`;
+    const spawnPrompt = (chosenScenario?.prompt || '').trim();
 
     const userProfile = {
       name: (req.body.userProfile?.name || characterName || template.userProfile?.name || 'Protagonist').trim(),
