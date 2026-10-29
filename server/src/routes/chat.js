@@ -176,6 +176,8 @@ router.post('/', async (req, res) => {
         if (stateUpdate.timeOfDay) worldState.timeOfDay = stateUpdate.timeOfDay;
         if (stateUpdate.currentLocation) worldState.currentLocation = stateUpdate.currentLocation;
         if (stateUpdate.weather) worldState.weather = stateUpdate.weather;
+        if (stateUpdate.sceneMood) worldState.sceneMood = stateUpdate.sceneMood;
+        if (stateUpdate.musicTrackQuery) worldState.musicTrackQuery = stateUpdate.musicTrackQuery;
         if (Array.isArray(stateUpdate.knownNPCs) && stateUpdate.knownNPCs.length > 0) {
           const existingMap = new Map((worldState.knownNPCs || []).map((npc) => [npc.name?.toLowerCase().trim(), npc]));
 

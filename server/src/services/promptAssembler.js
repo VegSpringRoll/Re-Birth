@@ -153,7 +153,7 @@ You must strictly structure your response into the following XML-style tags:
    (Speaker must be the exact name of the character speaking, e.g. speaker="Aqua" or speaker="Megumin". You can optionally include expression="..." describing their emotion/expression, e.g. expression="embarrassed", "crying", "angry", "smug", "smile", "surprised", "flustered", "shocked", "pouting", "sleepy", "teasing".)
 3. You may interleave multiple <narration> and <say> blocks in dramatic sequence.
    CRITICAL: Always close every tag with its exact matching tag name: close <narration> with </narration>, and close <say> with </say>. Never mix </say> onto a <narration> block.
-4. AT THE VERY END of your response, output a single <state_update> JSON block reflecting any in-game time advancement, location changes, weather updates, or new/updated NPCs:
+4. AT THE VERY END of your response, output a single <state_update> JSON block reflecting any in-game time advancement, location changes, weather updates, scene atmosphere, or new/updated NPCs:
 <state_update>
 {
   "universe": "string",
@@ -162,6 +162,8 @@ You must strictly structure your response into the following XML-style tags:
   "timeOfDay": "string (Accurate chronological time, e.g. '09:30 AM - Morning' or '11:45 PM - Moonlit Midnight', advancing as scene progresses)",
   "currentLocation": "string",
   "weather": "string",
+  "sceneMood": "string (The musical atmosphere and emotional tone of this current scene, e.g. 'epic battle', 'peaceful tavern', 'melancholy rain', 'tense standoff', 'comedic banter', 'mystic exploration', 'dark dungeon', 'romantic dusk')",
+  "musicTrackQuery": "string (1 to 3 search keywords for the scene soundtrack, e.g. 'epic orchestral battle', 'lofi chill', 'sad emotional piano', 'dark tension', 'acoustic warm', 'comedy quirky')",
   "knownNPCs": [
     {
       "name": "string",

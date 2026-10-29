@@ -67,6 +67,8 @@ CRITICAL FORMATTING RULES:
   "timeOfDay": "string (e.g. Dawn, Noon, Dusk, Midnight)",
   "currentLocation": "string (precise location)",
   "weather": "string (environmental conditions / atmosphere)",
+  "sceneMood": "string (The musical atmosphere and emotional tone of this scene, e.g. 'epic battle', 'peaceful tavern', 'melancholy rain', 'tense standoff', 'comedic banter', 'mystic exploration', 'dark dungeon')",
+  "musicTrackQuery": "string (1-3 search keywords for the scene soundtrack, e.g. 'epic orchestral battle', 'lofi chill', 'sad emotional piano', 'dark tension', 'acoustic warm', 'comedy quirky')",
   "knownNPCs": [
     { "name": "Character Name", "relation": "Relationship description", "status": "Current activity or condition" }
   ]

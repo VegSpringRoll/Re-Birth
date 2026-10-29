@@ -113,7 +113,10 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(forgePayload),
       });
-      if (!res.ok) throw new Error('Failed to forge realm');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.details || errData.error || `HTTP ${res.status}: Failed to forge realm`);
+      }
       const data = await res.json();
       setSessions((prev) => [data.session, ...prev]);
       setCurrentSessionId(data.session._id);
@@ -509,6 +512,8 @@ export default function App() {
         isRightDrawerOpen={isRightDrawerOpen}
         keyTick={keyUpdateTick}
         currentSceneContext={{
+          sceneMood: worldState?.sceneMood,
+          musicTrackQuery: worldState?.musicTrackQuery,
           narration: streamingContent || (currentSession?.messages?.length > 0 ? currentSession.messages[currentSession.messages.length - 1].rawContent : ''),
           location: worldState?.currentLocation || '',
           weather: worldState?.weather || '',

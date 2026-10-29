@@ -11,11 +11,23 @@ const CACHE_TTL = 60 * 60 * 1000;
  */
 const MOOD_QUERY_MAP = {
   combat: ['action', 'epic', 'battle', 'cinematic', 'intense', 'power'],
+  battle: ['battle', 'epic', 'action', 'orchestral', 'combat'],
   peaceful: ['chill', 'lofi', 'peaceful', 'ambient', 'relaxing', 'calm'],
   mystic: ['fantasy', 'ambient', 'mystical', 'cinematic', 'ethereal', 'piano'],
+  fantasy: ['fantasy', 'magic', 'adventure', 'orchestral', 'ethereal'],
   dungeon: ['dark', 'tension', 'suspense', 'orchestral', 'mystery', 'cinematic'],
+  tension: ['tension', 'suspense', 'dark', 'mystery', 'thriller', 'cinematic'],
+  suspense: ['suspense', 'tension', 'mystery', 'dark', 'cinematic'],
   rain: ['melancholy', 'sad', 'rain', 'lofi', 'emotional', 'ambient'],
+  sad: ['sad', 'melancholy', 'emotional', 'piano', 'sorrow'],
+  melancholy: ['melancholy', 'sad', 'piano', 'emotional', 'ambient'],
   campfire: ['acoustic', 'folk', 'cozy', 'warm', 'guitar', 'peaceful'],
+  tavern: ['folk', 'acoustic', 'cheerful', 'upbeat', 'tavern'],
+  comedy: ['quirky', 'funny', 'playful', 'acoustic', 'upbeat', 'cheerful'],
+  playful: ['playful', 'quirky', 'upbeat', 'acoustic', 'cheerful'],
+  romantic: ['romantic', 'love', 'piano', 'gentle', 'warm', 'emotional'],
+  triumphant: ['epic', 'heroic', 'victory', 'triumphant', 'uplifting', 'orchestral'],
+  epic: ['epic', 'cinematic', 'action', 'orchestral', 'heroic'],
   auto: ['cinematic', 'soundtrack', 'ambient', 'lofi', 'epic'],
 };
 
@@ -86,6 +98,31 @@ router.get('/search', async (req, res) => {
           audioUrl: t.files.mp3,
         };
       });
+
+    // If query had 0 matches, fallback to broader mood term
+    if (tracks.length === 0 && mood && MOOD_QUERY_MAP[mood]) {
+      const fallbackTerm = MOOD_QUERY_MAP[mood][0];
+      if (fallbackTerm && fallbackTerm.toLowerCase() !== query.toLowerCase()) {
+        const retryUrl = `https://api.freetouse.com/v3/music/tracks/search?query=${encodeURIComponent(fallbackTerm)}&limit=${limit}&order=random`;
+        const retryRes = await fetch(retryUrl, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(4000) });
+        if (retryRes.ok) {
+          const retryJson = await retryRes.json();
+          const retryRaw = Array.isArray(retryJson?.data) ? retryJson.data : [];
+          retryRaw.filter((t) => t && t.files && t.files.mp3).forEach((t) => {
+            tracks.push({
+              id: t.id,
+              title: t.title || 'Scene Soundtrack',
+              artist: t.artists?.[0]?.[1]?.name || t.artists?.[0]?.name || 'Free To Use Artist',
+              genre: t.genre || 'Cinematic',
+              category: t.categories?.[0]?.[1]?.name || t.genre || 'Atmospheric Soundtrack',
+              duration: t.duration ? Math.round(t.duration) : 120,
+              thumbnail: t.thumbnails?.sm || t.thumbnails?.md || '',
+              audioUrl: t.files.mp3,
+            });
+          });
+        }
+      }
+    }
 
     // Cache the result
     if (tracks.length > 0) {

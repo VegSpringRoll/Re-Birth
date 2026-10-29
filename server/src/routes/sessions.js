@@ -447,6 +447,7 @@ router.post('/forge', async (req, res) => {
     const {
       presetId,
       customWorld,
+      universeTitle,
       chosenTimeline,
       chosenScenario,
       characterName,
@@ -454,20 +455,41 @@ router.post('/forge', async (req, res) => {
       systemInstructions,
     } = req.body;
 
-    let template;
-    if (presetId) {
+    let template = null;
+
+    // 1. If presetId matches a pre-baked canon preset
+    if (presetId && presetId !== 'custom') {
       template = WORLD_PRESETS.find((p) => p.id === presetId);
-      if (!template) {
-        return res.status(404).json({ error: 'Preset world not found' });
-      }
-    } else if (customWorld && customWorld.universeTitle) {
+    }
+
+    // 2. Custom or AI-briefed realm
+    if (!template) {
+      const uTitle = (
+        customWorld?.universeTitle ||
+        universeTitle ||
+        (presetId && presetId !== 'custom' ? presetId : '') ||
+        'Custom Realm'
+      ).trim();
+
+      const startingNPCs = Array.isArray(customWorld?.knownNPCs)
+        ? customWorld.knownNPCs
+        : Array.isArray(customWorld?.startingNPCs)
+        ? customWorld.startingNPCs
+        : [];
+
       template = generateCustomWorldTemplate({
-        ...customWorld,
+        universeTitle: uTitle,
+        startingLocation: chosenScenario?.location,
+        customEra: chosenTimeline?.era || chosenTimeline?.label,
+        customScenario: chosenScenario?.prompt,
         characterName,
         characterConcept,
+        startingNPCs,
       });
-    } else {
-      return res.status(400).json({ error: 'Either presetId or customWorld is required' });
+
+      if (customWorld?.synopsis) {
+        template.synopsis = customWorld.synopsis;
+      }
     }
 
     const currentArcOrChapter = chosenTimeline?.label || chosenTimeline?.era || template.currentEra || 'Chapter 1: The Journey Begins';
@@ -476,16 +498,38 @@ router.post('/forge', async (req, res) => {
     const weather = chosenScenario?.weather || template.weather;
     const spawnPrompt = chosenScenario?.prompt || `I step through the boundary and materialize into ${location}.`;
 
-    const userProfile = req.body.userProfile || {
-      name: characterName?.trim() || template.userProfile?.name || 'Protagonist',
-      physique: template.userProfile?.physique || 'Athletic silhouette, combat attire',
-      traits: characterConcept?.trim() || template.userProfile?.traits || 'Resolute, perceptive',
-      details: template.userProfile?.details || `Traveler awakened in ${template.universe}.`,
+    const userProfile = {
+      name: (req.body.userProfile?.name || characterName || template.userProfile?.name || 'Protagonist').trim(),
+      avatar: req.body.userProfile?.avatar || template.userProfile?.avatar || '',
+      gender: req.body.userProfile?.gender || template.userProfile?.gender || 'Male',
+      physique: req.body.userProfile?.physique || template.userProfile?.physique || 'Athletic silhouette, combat attire',
+      traits: req.body.userProfile?.traits || characterConcept || template.userProfile?.traits || 'Resolute, perceptive',
+      details: req.body.userProfile?.details || template.userProfile?.details || `Traveler awakened in ${template.universe}.`,
     };
 
-    const movesetKnowledge = req.body.movesetKnowledge !== undefined
+    const movesetKnowledge = typeof req.body.movesetKnowledge === 'string'
       ? req.body.movesetKnowledge
-      : template.movesetKnowledge;
+      : typeof template.movesetKnowledge === 'string'
+      ? template.movesetKnowledge
+      : '[]';
+
+    // Sanitize known NPCs to ensure Mongoose validation never fails
+    const rawNPCs = Array.isArray(template.knownNPCs) && template.knownNPCs.length > 0
+      ? template.knownNPCs
+      : Array.isArray(customWorld?.knownNPCs)
+      ? customWorld.knownNPCs
+      : [];
+
+    const cleanNPCs = rawNPCs
+      .filter((npc) => npc && (typeof npc === 'string' || npc.name))
+      .map((npc) => ({
+        name: typeof npc === 'string' ? npc.trim() : (npc.name || 'Resident').trim(),
+        relation: typeof npc?.relation === 'string' ? npc.relation.trim() : 'Local Resident',
+        status: typeof npc?.status === 'string' ? npc.status.trim() : 'Present in sector',
+        isPresent: npc.isPresent !== false,
+        affinity: typeof npc.affinity === 'number' ? npc.affinity : 50,
+        bondTier: npc.bondTier || 'Acquaintance',
+      }));
 
     // Create Session - rollingSummary starts clean and empty, updating every 10 turns
     const session = await Session.create({
@@ -507,12 +551,14 @@ router.post('/forge', async (req, res) => {
       timeOfDay: template.timeOfDay || '09:00 AM - Morning',
       currentLocation: location,
       weather,
-      knownNPCs: template.knownNPCs || []
+      sceneMood: 'peaceful',
+      musicTrackQuery: `${template.universe} ambient soundtrack`,
+      knownNPCs: cleanNPCs
     });
 
     // Pre-cache avatars in background
-    if (Array.isArray(template.knownNPCs)) {
-      template.knownNPCs.forEach((npc) => {
+    if (Array.isArray(cleanNPCs)) {
+      cleanNPCs.forEach((npc) => {
         getOrFetchAvatar(npc.name, template.universe).catch((e) => {});
       });
     }

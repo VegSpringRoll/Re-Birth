@@ -374,7 +374,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
   const handleConfirmAndSpawn = async () => {
     setLoading(true);
     try {
-      const activeLocation = (scenarioLocation || '').trim() || `${selectedPreset?.universe} Horizon`;
+      const activeLocation = (scenarioLocation || '').trim() || `${selectedPreset?.universe || 'Anime Realm'} Horizon`;
       const activePrompt = (scenarioPrompt || '').trim() || `I step through the dimensional boundary and materialize into ${activeLocation}.`;
 
       const currentPersona = savedPersonas.find((p) => p.id === selectedPersonaId) || savedPersonas[0];
@@ -388,39 +388,33 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
       };
       const movesetKnowledge = currentPersona?.movesetKnowledge || '[]';
 
-      const payload = isCustomMode
-        ? {
-            customWorld: { universeTitle: selectedPreset?.universe || customUniverseTitle },
-            chosenTimeline: chosenTimeline || { era: 'Prologue Era', label: 'Prologue Era' },
-            chosenScenario: {
-              id: 'custom_user_scenario',
-              label: 'User Opening Scenario',
-              location: activeLocation,
-              weather: 'Atmospheric clarity',
-              prompt: activePrompt,
-            },
-            characterName: userProfile.name,
-            characterConcept: userProfile.traits,
-            userProfile,
-            movesetKnowledge,
-            systemInstructions: systemInstructions.trim(),
-          }
-        : {
-            presetId: selectedPreset?.id,
-            chosenTimeline: chosenTimeline || { era: 'Prologue Era', label: 'Prologue Era' },
-            chosenScenario: {
-              id: 'user_scenario',
-              label: 'User Opening Scenario',
-              location: activeLocation,
-              weather: 'Atmospheric clarity',
-              prompt: activePrompt,
-            },
-            characterName: userProfile.name,
-            characterConcept: userProfile.traits,
-            userProfile,
-            movesetKnowledge,
-            systemInstructions: systemInstructions.trim(),
-          };
+      const isCustom = isCustomMode || !selectedPreset?.id || selectedPreset?.id === 'custom';
+      const universeTitle = selectedPreset?.universe || customUniverseTitle || 'Anime Realm';
+      const knownNPCs = Array.isArray(selectedPreset?.knownNPCs) ? selectedPreset.knownNPCs : [];
+
+      const payload = {
+        presetId: isCustom ? 'custom' : selectedPreset?.id,
+        universeTitle,
+        customWorld: {
+          universeTitle,
+          synopsis: selectedPreset?.synopsis || '',
+          timelines: selectedPreset?.timelines || [],
+          knownNPCs,
+        },
+        chosenTimeline: chosenTimeline || selectedPreset?.timelines?.[0] || { era: 'Prologue Era', label: 'Prologue Era' },
+        chosenScenario: {
+          id: isCustom ? 'custom_user_scenario' : 'user_scenario',
+          label: 'User Opening Scenario',
+          location: activeLocation,
+          weather: 'Atmospheric clarity',
+          prompt: activePrompt,
+        },
+        characterName: userProfile.name,
+        characterConcept: userProfile.traits,
+        userProfile,
+        movesetKnowledge,
+        systemInstructions: systemInstructions.trim(),
+      };
 
       await onForgeRealm(payload);
       onClose();

@@ -44,6 +44,14 @@ const WorldStateSchema = new mongoose.Schema(
       type: String,
       default: 'Crisp dusk breeze with faint arcane particulate glow'
     },
+    sceneMood: {
+      type: String,
+      default: 'peaceful'
+    },
+    musicTrackQuery: {
+      type: String,
+      default: 'peaceful ambient lofi'
+    },
     knownNPCs: {
       type: [KnownNPCSchema],
       default: [

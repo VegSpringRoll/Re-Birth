@@ -31,6 +31,7 @@ export default function AudioController({ currentSceneContext }) {
   const [volume, setVolume] = useState(audioEngine.volume);
   const [currentMood, setCurrentMood] = useState(audioEngine.currentMood);
   const [currentTrack, setCurrentTrack] = useState(audioEngine.currentTrack);
+  const [aiMoodDescription, setAiMoodDescription] = useState(audioEngine.aiSceneMood);
   const [selectedPreset, setSelectedPreset] = useState('auto');
   const [isLoading, setIsLoading] = useState(audioEngine.isLoading);
   const [isOpen, setIsOpen] = useState(false);
@@ -44,6 +45,7 @@ export default function AudioController({ currentSceneContext }) {
         setIsMuted(state.isMuted);
         setVolume(state.volume);
         setCurrentMood(state.mood);
+        if (state.aiSceneMood) setAiMoodDescription(state.aiSceneMood);
         setIsLoading(state.isLoading);
       }
     });
@@ -61,14 +63,18 @@ export default function AudioController({ currentSceneContext }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Scene-adaptive auto mood detection
+  // Scene-adaptive auto mood detection driven by AI Director
   useEffect(() => {
     if (selectedPreset === 'auto' && currentSceneContext) {
-      const detected = audioEngine.detectMoodFromContext(currentSceneContext);
-      if (detected !== currentMood) {
-        setCurrentMood(detected);
+      const { mood, query, description, fromAI } = audioEngine.detectMoodFromContext(currentSceneContext);
+      if (description) {
+        setAiMoodDescription(description);
+      }
+      const isNewMood = mood !== currentMood || (query && query !== audioEngine.currentQuery);
+      if (isNewMood) {
+        setCurrentMood(mood);
         if (!isMuted) {
-          audioEngine.playMood(detected);
+          audioEngine.playMood(mood, false, query, description);
         }
       }
     }
@@ -174,6 +180,17 @@ export default function AudioController({ currentSceneContext }) {
               {isMuted ? 'Muted' : 'Playing'}
             </button>
           </div>
+
+          {/* AI Director Scene Mood Badge */}
+          {aiMoodDescription && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-950/60 to-cyan-950/60 border border-cyan-500/30 text-cyan-200 text-[10.5px] font-mono shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0 animate-pulse" />
+              <div className="truncate min-w-0">
+                <span className="text-cyan-400/80">AI Scene Vibe: </span>
+                <span className="font-bold text-white uppercase tracking-wider">{aiMoodDescription}</span>
+              </div>
+            </div>
+          )}
 
           {/* Now Playing FreeToUse Card */}
           <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-500/25 flex items-center justify-between gap-3 shadow-inner">
