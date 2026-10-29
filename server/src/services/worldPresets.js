@@ -389,14 +389,14 @@ export function generateCustomWorldTemplate({
     userProfile: {
       name: cleanCharName,
       physique: 'Distinctive silhouette, tailored combat apparel, focused observant eyes carrying the aura of a seasoned traveler',
-      traits: characterConcept?.trim() || 'Tactical mind, sovereign calm under pressure, bound to the World Convergence Core',
-      details: `Originating beyond the boundary to forge destiny within the world of ${cleanUniverse}.`
+      traits: characterConcept?.trim() || 'Tactical mind, sovereign calm under pressure',
+      details: ''
     },
     movesetKnowledge: `[Innate Powers of ${cleanCharName}]
 - Dimensional Aegis: Manifests a barrier that absorbs and redirects hostile energy.
 - Horizon Pierce: Concentrates mana/kinetic force into an instantaneous armor-shattering strike.
 - Resonance Surge: Synchronizes with the core laws of ${cleanUniverse} to temporarily multiply combat stats.`,
     knownNPCs: defaultNPCs,
-    openingScenario: customScenario?.trim() || `Materialize across the outer dimensional boundary of ${cleanUniverse} into ${startingLocation?.trim() || 'the horizon border'}.`
+    openingScenario: customScenario?.trim() || `I arrive at ${startingLocation?.trim() || 'the area'}.`
   };
 }

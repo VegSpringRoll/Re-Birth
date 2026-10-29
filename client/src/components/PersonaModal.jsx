@@ -53,6 +53,14 @@ export default function PersonaModal({
   const [movesetParseError, setMovesetParseError] = useState('');
   const [showRawJson, setShowRawJson] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
+  const [movesetToast, setMovesetToast] = useState('');
+
+  // Manual Move Addition Form State
+  const [showManualMoveForm, setShowManualMoveForm] = useState(false);
+  const [manualMoveName, setManualMoveName] = useState('');
+  const [manualMoveKeywords, setManualMoveKeywords] = useState('');
+  const [manualMoveDesc, setManualMoveDesc] = useState('');
+  const [manualMoveAction, setManualMoveAction] = useState('');
   const fileInputRef = useRef(null);
 
   const handleFileUpload = (e) => {
@@ -111,7 +119,8 @@ export default function PersonaModal({
 
   // Load selected persona into form
   useEffect(() => {
-    const current = personas.find((p) => p.id === selectedPersonaId) || personas[0];
+    const stored = getStoredPersonas();
+    const current = stored.find((p) => p.id === selectedPersonaId) || stored[0];
     if (current) {
       setName(current.name || '');
       setAvatar(current.avatar || '');
@@ -123,7 +132,7 @@ export default function PersonaModal({
       setRawMovesInput('');
       setMovesetParseError('');
     }
-  }, [selectedPersonaId, personas]);
+  }, [selectedPersonaId, isOpen]);
 
   if (!isOpen) return null;
 
@@ -261,13 +270,21 @@ export default function PersonaModal({
         existingMoves = [];
       }
 
-      const merged = [...existingMoves, ...(data.moves || [])];
+      const incoming = (data.moves || []).map((m, idx) => ({
+        id: m.id || `move_${Date.now()}_${idx + 1}`,
+        name: String(m.name || 'Technique').trim(),
+        keywords: Array.isArray(m.keywords) ? m.keywords.map((k) => String(k).toLowerCase().trim()).filter(Boolean) : [String(m.name || '').toLowerCase()],
+        description: String(m.description || '').trim() || `Executes ${m.name} with tactical precision.`,
+        action: String(m.action || '').trim() || `*activates ${m.name}*`,
+      }));
+
+      const merged = [...existingMoves, ...incoming];
       const formattedJson = JSON.stringify(merged, null, 2);
       setMovesetKnowledge(formattedJson);
       setRawMovesInput('');
 
       // Auto save
-      createOrUpdatePersona({
+      const updatedList = createOrUpdatePersona({
         id: selectedPersonaId,
         name,
         avatar,
@@ -277,7 +294,7 @@ export default function PersonaModal({
         details,
         movesetKnowledge: formattedJson
       });
-      setPersonas(getStoredPersonas());
+      setPersonas(updatedList);
 
       if (selectedPersonaId === activePersonaId && onApplyPersonaToSession) {
         onApplyPersonaToSession({
@@ -285,6 +302,9 @@ export default function PersonaModal({
           movesetKnowledge: formattedJson
         });
       }
+
+      setMovesetToast(`Added ${incoming.length} moves! Total: ${merged.length} moves in Lorebook.`);
+      setTimeout(() => setMovesetToast(''), 3000);
     } catch (err) {
       setMovesetParseError(err.message);
     } finally {
@@ -292,13 +312,78 @@ export default function PersonaModal({
     }
   };
 
+  const handleManualAddMove = (e) => {
+    e?.preventDefault();
+    const moveName = manualMoveName.trim();
+    if (!moveName) return;
+
+    let existingMoves = [];
+    try {
+      if (movesetKnowledge && movesetKnowledge.trim().startsWith('[')) {
+        existingMoves = JSON.parse(movesetKnowledge);
+      }
+    } catch (e) {
+      existingMoves = [];
+    }
+
+    const kwArray = manualMoveKeywords
+      .split(/[,;\n]+/)
+      .map((k) => k.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (kwArray.length === 0) {
+      kwArray.push(moveName.toLowerCase());
+    }
+
+    const newMove = {
+      id: `move_${Date.now()}_${existingMoves.length + 1}`,
+      name: moveName,
+      keywords: kwArray,
+      description: manualMoveDesc.trim() || `Executes ${moveName} with tactical precision.`,
+      action: manualMoveAction.trim() || `*activates ${moveName}*`,
+    };
+
+    const merged = [...existingMoves, newMove];
+    const formattedJson = JSON.stringify(merged, null, 2);
+    setMovesetKnowledge(formattedJson);
+    setManualMoveName('');
+    setManualMoveKeywords('');
+    setManualMoveDesc('');
+    setManualMoveAction('');
+    setShowManualMoveForm(false);
+
+    // Auto save immediately
+    const updated = createOrUpdatePersona({
+      id: selectedPersonaId,
+      name,
+      avatar,
+      gender,
+      physique,
+      traits,
+      details,
+      movesetKnowledge: formattedJson,
+    });
+    setPersonas(updated);
+
+    if (selectedPersonaId === activePersonaId && onApplyPersonaToSession) {
+      onApplyPersonaToSession({
+        userProfile: { name, avatar, gender, physique, traits, details },
+        movesetKnowledge: formattedJson,
+      });
+    }
+
+    setMovesetToast(`Added "${moveName}"! (${merged.length} total moves)`);
+    setTimeout(() => setMovesetToast(''), 3000);
+  };
+
   const handleDeleteMove = (indexToDelete) => {
     try {
       const moves = [...parsedMoves];
+      const removed = moves[indexToDelete];
       moves.splice(indexToDelete, 1);
       const updated = JSON.stringify(moves, null, 2);
       setMovesetKnowledge(updated);
-      createOrUpdatePersona({
+      const updatedList = createOrUpdatePersona({
         id: selectedPersonaId,
         name,
         avatar,
@@ -308,13 +393,15 @@ export default function PersonaModal({
         details,
         movesetKnowledge: updated
       });
-      setPersonas(getStoredPersonas());
+      setPersonas(updatedList);
       if (selectedPersonaId === activePersonaId && onApplyPersonaToSession) {
         onApplyPersonaToSession({
           userProfile: { name, avatar, gender, physique, traits, details },
           movesetKnowledge: updated
         });
       }
+      setMovesetToast(`Deleted "${removed?.name || 'Move'}"`);
+      setTimeout(() => setMovesetToast(''), 2500);
     } catch (e) {}
   };
 
@@ -650,15 +737,114 @@ export default function PersonaModal({
                     Keyword-Triggered Moveset Lorebook ({parsedMoves.length} Moves)
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowRawJson(!showRawJson)}
-                  className="flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-cyan-300 transition-colors"
-                >
-                  <Code className="w-3.5 h-3.5" />
-                  <span>{showRawJson ? 'Hide JSON' : 'View/Edit JSON'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowManualMoveForm(!showManualMoveForm)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-cyan-300 hover:text-white bg-cyan-950/70 hover:bg-cyan-900/80 border border-cyan-500/40 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{showManualMoveForm ? 'Hide Form' : '+ Add Move Manually'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRawJson(!showRawJson)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-cyan-300 transition-colors"
+                  >
+                    <Code className="w-3.5 h-3.5" />
+                    <span>{showRawJson ? 'Hide JSON' : 'View/Edit JSON'}</span>
+                  </button>
+                </div>
               </div>
+
+              {movesetToast && (
+                <div className="p-2.5 rounded-xl bg-cyan-950/80 border border-cyan-400/50 text-cyan-200 text-xs font-mono flex items-center gap-2 animate-fade-in shadow-md">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                  <span>{movesetToast}</span>
+                </div>
+              )}
+
+              {/* Manual Add Move Form */}
+              {showManualMoveForm && (
+                <div className="p-3.5 rounded-xl bg-slate-950/90 border border-cyan-500/40 space-y-3 animate-fade-in">
+                  <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5">
+                    <span className="text-xs font-bold text-cyan-300 font-display flex items-center gap-1.5">
+                      <Zap className="w-3.5 h-3.5 text-amber-300" />
+                      Add Individual Technique
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowManualMoveForm(false)}
+                      className="text-[10px] text-slate-400 hover:text-rose-300 font-mono"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                        Move Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Chidori, Rasengan, Domain Expansion..."
+                        value={manualMoveName}
+                        onChange={(e) => setManualMoveName(e.target.value)}
+                        className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                        Trigger Keywords (Comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. chidori, lightning blade, piercing thrust"
+                        value={manualMoveKeywords}
+                        onChange={(e) => setManualMoveKeywords(e.target.value)}
+                        className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                      Tactical Summary / Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Concentrated electrical chakra in the palm that pierces through defense at lightning speed."
+                      value={manualMoveDesc}
+                      onChange={(e) => setManualMoveDesc(e.target.value)}
+                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 resize-none font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono uppercase text-slate-400 block mb-1">
+                      Choreography Action Snippet (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. *charges lightning in palm and dashes forward with blinding speed*"
+                      value={manualMoveAction}
+                      onChange={(e) => setManualMoveAction(e.target.value)}
+                      className="w-full bg-black/60 border border-cyan-500/30 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={!manualMoveName.trim()}
+                    onClick={handleManualAddMove}
+                    className="w-full py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md disabled:opacity-40 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Save Technique to Lorebook</span>
+                  </button>
+                </div>
+              )}
 
               <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 leading-relaxed flex items-start gap-2.5">
                 <Sparkles className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
@@ -719,9 +905,22 @@ export default function PersonaModal({
                     onChange={(e) => setMovesetKnowledge(e.target.value)}
                     className="w-full bg-black/80 border border-purple-500/30 rounded-xl p-3 text-[11px] text-purple-200 font-mono leading-relaxed resize-y focus:outline-none focus:border-cyan-400"
                   />
-                  <p className="text-[10px] text-slate-500 font-mono">
-                    Edit the JSON lorebook array directly.
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Edit the JSON lorebook array directly.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSave();
+                        setMovesetToast('Lorebook JSON updated and saved!');
+                        setTimeout(() => setMovesetToast(''), 2500);
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                    >
+                      Save JSON Changes
+                    </button>
+                  </div>
                 </div>
               ) : parsedMoves.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1">

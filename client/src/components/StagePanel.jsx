@@ -16,6 +16,7 @@ import {
   Key,
   AlertCircle,
   Image as ImageIcon,
+  Eye,
   EyeOff,
   Users,
   Globe,
@@ -28,6 +29,7 @@ import NarrationCard from './NarrationCard.jsx';
 import DialogueBubble from './DialogueBubble.jsx';
 import AvatarImage from './AvatarImage.jsx';
 import CharacterStageSidePanel from './CharacterStageSidePanel.jsx';
+import PromptInspectorModal from './PromptInspectorModal.jsx';
 import { getActiveNPCsList } from './LeftPanel.jsx';
 import { parseRoleplayBlocks } from '../utils/parseRoleplayBlocks.js';
 import { getUniverseBackground } from '../utils/animeBackgrounds.js';
@@ -158,6 +160,7 @@ export default function StagePanel({
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showKeyWarning, setShowKeyWarning] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [showPromptInspector, setShowPromptInspector] = useState(false);
 
   // On-Demand Character Action & Yandex Image Inspector
   const [activeInspection, setActiveInspection] = useState(null);
@@ -1188,6 +1191,17 @@ export default function StagePanel({
               <span className="hidden xs:inline">RP Total:</span>
               <span>~{tokenMetrics.fullRoleplayTokens.toLocaleString()}t</span>
             </span>
+
+            {/* Prompt Inspector Button */}
+            <button
+              type="button"
+              onClick={() => setShowPromptInspector(true)}
+              className="px-2.5 py-1 rounded-xl bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-500/40 text-cyan-200 hover:text-white text-[10.5px] sm:text-xs font-mono font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 touch-manipulation cursor-pointer shrink-0"
+              title="Inspect what is being sent to AI exactly each turn (System Prompt, Directives, History Window)"
+            >
+              <Eye className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Inspect</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 text-[10.5px] sm:text-xs font-mono shrink-0 ml-auto">
@@ -1236,6 +1250,17 @@ export default function StagePanel({
           </button>
         </form>
       </div>
+
+      {/* Turn Prompt Inspector Modal */}
+      <PromptInspectorModal
+        isOpen={showPromptInspector}
+        onClose={() => setShowPromptInspector(false)}
+        session={session}
+        worldState={worldState}
+        currentInput={inputText}
+        provider={getActiveProvider() || 'openrouter'}
+        model={(getStoredModels() || {})[getActiveProvider() || 'openrouter'] || ''}
+      />
     </main>
   );
 }

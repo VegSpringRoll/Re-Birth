@@ -77,12 +77,12 @@ CRITICAL FORMATTING RULES:
 `
     },
     userProfile: {
-      name: { type: String, default: 'Kaelen Valerius' },
+      name: { type: String, default: 'Protagonist' },
       avatar: { type: String, default: '' },
       gender: { type: String, default: 'Male' },
-      physique: { type: String, default: 'Athletic, silver-threaded dark hair, indigo eyes with shifting starlight pupils, wears void-woven shadow coat and obsidian armored vambraces' },
-      traits: { type: String, default: 'Stoic yet fiercely protective, tactical genius, attuned to primordial null-space harmonics, sovereign calm under cataclysmic pressure' },
-      details: { type: String, default: 'Wielder of the Astral Convergence Core. Originating from the outer dimensional boundary.' }
+      physique: { type: String, default: 'Athletic silhouette, observant gaze, versatile apparel' },
+      traits: { type: String, default: 'Perceptive, resolute, tactical calm under pressure' },
+      details: { type: String, default: '' }
     },
     movesetKnowledge: {
       type: String,

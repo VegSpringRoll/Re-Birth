@@ -14,7 +14,12 @@ You are the Master Storyteller, Game Director, and Simulation Engine for this ro
 2. Participant Agency: {{user}} is a sovereign participant. NEVER decide, control, dictate, or speak for {{user}}'s actions, feelings, thoughts, or dialogue.
 3. Canon Logic: Adhere strictly to the universe's tone, power scaling, magic/combat mechanics, and social hierarchy.
 4. Output Architecture: You must strictly structure all responses using <narration>, <say speaker="...">, and terminal <state_update> tags.
-5. Out-Of-Character (OOC) Guidance: If {{user}} provides instructions wrapped in (OOC: ...), (( ... )), or [OOC: ...], treat them as direct high-priority out-of-character directorial instructions guiding the scene, narrative pacing, tone, or specific events. Execute the request seamlessly within the story without breaking third-person immersion or acknowledging the meta-instruction in character dialogue.`;
+5. Out-Of-Character (OOC) Guidance: If {{user}} provides instructions wrapped in (OOC: ...), (( ... )), or [OOC: ...], treat them as direct high-priority out-of-character directorial instructions guiding the scene, narrative pacing, tone, or specific events. Execute the request seamlessly within the story without breaking third-person immersion or acknowledging the meta-instruction in character dialogue.
+6. Realistic Perception & Stranger Dynamics:
+- NPCs DO NOT possess psychic or meta-knowledge. NPCs DO NOT automatically know {{user}}'s name, background, origin, or capabilities upon first meeting or at the beginning of a roleplay.
+- Treat {{user}} strictly as an unfamiliar stranger unless {{user}} verbally introduces themselves in spoken dialogue (e.g. "My name is..."), or unless their identity has already been established in previous scene dialogue.
+- NPCs must ask for {{user}}'s name naturally if they wish to know it, react only to what is physically visible, and never presume or state {{user}}'s name before it is given.
+- NEVER invent labels such as "dimensional traveler", "otherworlder", "traveler from afar", or "reincarnator" unless {{user}} explicitly claims that origin in spoken dialogue.`;
 
 export function assembleSystemPrompt({
   directorInstructions,
@@ -79,18 +84,27 @@ ${activeText}
 ${otherText}`);
   }
 
-  // 4. User Profile & Character Sheet
+  // 4. User Profile & Character Sheet (Director Reference Only - NOT known to NPCs until revealed)
   if (userProfile) {
-    const profileText =
-      typeof userProfile === 'string'
-        ? userProfile
-        : `Name: ${userProfile.name || 'Protagonist'}
-Physique & Appearance: ${userProfile.physique || 'Unspecified'}
-Personality & Traits: ${userProfile.traits || 'Resolute'}
-Background: ${userProfile.details || 'Unknown'}`;
+    let profileLines = [];
+    if (typeof userProfile === 'string') {
+      profileLines.push(userProfile);
+    } else {
+      profileLines.push(`Name: ${userProfile.name || 'Protagonist'} (Note: Unknown to NPCs until {{user}} reveals it in dialogue)`);
+      if (userProfile.physique && userProfile.physique.trim()) {
+        profileLines.push(`Physique & Visual Appearance: ${userProfile.physique.trim()}`);
+      }
+      if (userProfile.traits && userProfile.traits.trim()) {
+        profileLines.push(`Personality & Behavioral Traits: ${userProfile.traits.trim()}`);
+      }
+      if (userProfile.details && userProfile.details.trim()) {
+        profileLines.push(`Background Lore: ${userProfile.details.trim()}`);
+      }
+    }
 
-    parts.push(`=== [4. USER PROFILE & CHARACTER SHEET] ===
-${profileText}`);
+    parts.push(`=== [4. USER PROFILE & CHARACTER SHEET (DIRECTOR REFERENCE ONLY - NOT KNOWN TO NPCS)] ===
+*Important*: NPCs in the scene cannot read this sheet. They only see {{user}}'s visible appearance and know nothing of {{user}}'s name, history, or abilities until revealed in dialogue.
+${profileLines.join('\n')}`);
   }
 
   // 5. Weapons, Forms & Moveset Lorebook (Keyword-Triggered)

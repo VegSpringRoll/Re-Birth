@@ -100,7 +100,7 @@ Provide canon story arcs, factual synopsis, and key canon NPCs for "${universeTi
     res.json({
       error: err.message,
       message: `Failed generating AI briefing: ${err.message}`,
-      synopsis: `The world of ${universeTitle.trim()}. Step through the boundary and forge your story.`,
+      synopsis: `The world of ${universeTitle.trim()}. Step into this realm and forge your story.`,
       timelines: [
         { id: 'arc1', label: 'Chapter 1: The Journey Begins', era: 'Chapter 1: The Journey Begins', date: 'Year 1, Mid-Autumn' },
         { id: 'arc2', label: 'Chapter 2: Escalating Shadows', era: 'Chapter 2: Escalating Shadows', date: 'Year 2, Winter' },
@@ -496,7 +496,7 @@ router.post('/forge', async (req, res) => {
     const inGameDate = chosenTimeline?.date || template.inGameDate || 'Year 1, Mid-Autumn';
     const location = chosenScenario?.location || template.currentLocation;
     const weather = chosenScenario?.weather || template.weather;
-    const spawnPrompt = chosenScenario?.prompt || `I step through the boundary and materialize into ${location}.`;
+    const spawnPrompt = chosenScenario?.prompt || `I arrive at ${location}.`;
 
     const userProfile = {
       name: (req.body.userProfile?.name || characterName || template.userProfile?.name || 'Protagonist').trim(),
@@ -504,7 +504,7 @@ router.post('/forge', async (req, res) => {
       gender: req.body.userProfile?.gender || template.userProfile?.gender || 'Male',
       physique: req.body.userProfile?.physique || template.userProfile?.physique || 'Athletic silhouette, combat attire',
       traits: req.body.userProfile?.traits || characterConcept || template.userProfile?.traits || 'Resolute, perceptive',
-      details: req.body.userProfile?.details || template.userProfile?.details || `Traveler awakened in ${template.universe}.`,
+      details: req.body.userProfile?.details || template.userProfile?.details || '',
     };
 
     const movesetKnowledge = typeof req.body.movesetKnowledge === 'string'
@@ -521,15 +521,17 @@ router.post('/forge', async (req, res) => {
       : [];
 
     const cleanNPCs = rawNPCs
-      .filter((npc) => npc && (typeof npc === 'string' || npc.name))
-      .map((npc) => ({
-        name: typeof npc === 'string' ? npc.trim() : (npc.name || 'Resident').trim(),
-        relation: typeof npc?.relation === 'string' ? npc.relation.trim() : 'Local Resident',
-        status: typeof npc?.status === 'string' ? npc.status.trim() : 'Present in sector',
-        isPresent: npc.isPresent !== false,
-        affinity: typeof npc.affinity === 'number' ? npc.affinity : 50,
-        bondTier: npc.bondTier || 'Acquaintance',
-      }));
+      .map((npc, idx) => {
+        const rawName = typeof npc === 'string' ? npc : (npc?.name || '');
+        const name = (typeof rawName === 'string' ? rawName.trim() : '') || `Character ${idx + 1}`;
+        const relation = (typeof npc?.relation === 'string' ? npc.relation.trim() : '') || 'Local Resident';
+        const status = (typeof npc?.status === 'string' ? npc.status.trim() : '') || 'Present in sector';
+        let affinity = typeof npc?.affinity === 'number' && !isNaN(npc.affinity) ? npc.affinity : 50;
+        affinity = Math.max(0, Math.min(100, affinity));
+        const bondTier = (typeof npc?.bondTier === 'string' ? npc.bondTier.trim() : '') || 'Acquaintance';
+        const isPresent = npc?.isPresent !== false;
+        return { name, relation, status, isPresent, affinity, bondTier };
+      });
 
     // Create Session - rollingSummary starts clean and empty, updating every 10 turns
     const session = await Session.create({
@@ -566,7 +568,7 @@ router.post('/forge', async (req, res) => {
     res.status(201).json({ session, worldState, spawnPrompt });
   } catch (err) {
     console.error('[SessionRoute] Error forging realm:', err);
-    res.status(500).json({ error: 'Failed to forge realm', details: err.message });
+    res.status(500).json({ error: 'Failed to forge realm', details: err.message || String(err) });
   }
 });
 

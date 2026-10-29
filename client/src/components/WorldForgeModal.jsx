@@ -59,8 +59,8 @@ You are an immersive simulation engine for the ${worldName} anime verse. You con
 </continuity>`;
 }
 
-export async function compressAvatarDataUrl(dataUrl, maxDim = 512) {
-  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image') || dataUrl.length < 200000) {
+export async function compressAvatarDataUrl(dataUrl, maxDim = 384) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image') || dataUrl.length < 80000) {
     return dataUrl;
   }
   return new Promise((resolve) => {
@@ -83,7 +83,7 @@ export async function compressAvatarDataUrl(dataUrl, maxDim = 512) {
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
       };
       img.onerror = () => resolve(dataUrl);
       img.src = dataUrl;
@@ -250,8 +250,9 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
     // Scenario Start is NOT AI-generated — user enters raw prompt
     setScenarioPrompt('');
     setScenarioLocation(preset.currentLocation || `${preset.universe} Outskirts`);
-    setCharacterName(preset.userProfile?.name || 'Kaelen Valerius');
-    setCharacterConcept(preset.userProfile?.traits || 'Perceptive sovereign');
+    const activeP = savedPersonas.find((p) => p.id === selectedPersonaId) || getActivePersona();
+    setCharacterName(activeP?.name || preset.userProfile?.name || 'Protagonist');
+    setCharacterConcept(activeP?.traits || preset.userProfile?.traits || 'Resolute, perceptive');
 
     // Populate Gold Standard System Instructions replacing {World}
     const goldStandard = getGoldStandardTemplate(preset.universe);
@@ -366,8 +367,9 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
       setChosenTimeline(timelines[0]);
       setScenarioPrompt('');
       setScenarioLocation(`${title} Outskirts`);
-      setCharacterName('Kaelen Valerius');
-      setCharacterConcept('Wielder of the Void Singularity, tactical sovereign');
+      const activeP = savedPersonas.find((p) => p.id === selectedPersonaId) || getActivePersona();
+      setCharacterName(activeP?.name || 'Protagonist');
+      setCharacterConcept(activeP?.traits || 'Resolute, perceptive');
       setSystemInstructions(getGoldStandardTemplate(title));
       setStep('briefing');
 
@@ -409,7 +411,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
     setLoading(true);
     try {
       const activeLocation = (scenarioLocation || '').trim() || `${selectedPreset?.universe || 'Anime Realm'} Horizon`;
-      const activePrompt = (scenarioPrompt || '').trim() || `I step through the dimensional boundary and materialize into ${activeLocation}.`;
+      const activePrompt = (scenarioPrompt || '').trim() || `I arrive at ${activeLocation}.`;
 
       const currentPersona = savedPersonas.find((p) => p.id === selectedPersonaId) || savedPersonas[0];
       const rawAvatar = currentPersona?.avatar || '';
@@ -421,7 +423,7 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
         gender: currentPersona?.gender || 'Male',
         physique: currentPersona?.physique || 'Athletic silhouette, combat attire',
         traits: currentPersona?.traits || characterConcept || 'Resolute, perceptive',
-        details: currentPersona?.details || 'Dimensional traveler awakened in this verse.',
+        details: currentPersona?.details || '',
       };
       const movesetKnowledge = currentPersona?.movesetKnowledge || '[]';
 

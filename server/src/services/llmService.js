@@ -496,7 +496,7 @@ The wind carries the distinctive resonance of this world. Across the perimeter, 
 </narration>
 
 <say speaker="${secondaryNPC}">
-"Stay alert. Whatever brought you across the boundary has already begun altering the balance of this realm."
+"Stay alert. The balance of this realm is shifting."
 </say>
 
 <state_update>

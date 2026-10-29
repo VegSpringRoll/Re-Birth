@@ -12,9 +12,9 @@ const DEFAULT_PERSONAS = [
     name: 'Patrick Yokam',
     avatar: 'https://s4.anilist.co/file/anilistcdn/character/large/b183885-HOmw8CqcJdv3.jpg',
     gender: 'Male',
-    physique: 'Tall, lean-athletic stature with observant amber eyes and dark untamed hair. Wears dark traveler attire with a reinforced leather duster and silver signet ring.',
+    physique: 'Tall, lean-athletic stature with observant amber eyes and dark untamed hair. Wears dark attire with a reinforced leather duster and silver signet ring.',
     traits: 'Analytical, composed, subtly sarcastic, fiercely perceptive, never bows to intimidation or hubris.',
-    details: 'An interdimensional participant traversing anime verses with sovereign agency and adaptive combat instincts.',
+    details: '',
     movesetKnowledge: JSON.stringify([
       {
         id: 'move-dim-shift',
@@ -41,7 +41,7 @@ const DEFAULT_PERSONAS = [
     gender: 'Male',
     physique: 'Striking silver hair tied back, sharp amethyst eyes, dressed in tailored midnight-blue coats with silver arcane filigree.',
     traits: 'Stoic, tactical mastermind, polite yet calculating, uncompromising in combat.',
-    details: 'A void-weaver sovereign trained in gravitational anomalies and spatial disruption.',
+    details: '',
     movesetKnowledge: JSON.stringify([
       {
         id: 'move-gravity-well',
@@ -68,6 +68,27 @@ export function getStoredPersonas() {
       localStorage.setItem(STORAGE_KEY_PERSONAS, JSON.stringify(DEFAULT_PERSONAS));
       return DEFAULT_PERSONAS;
     }
+
+    // Sanitize any stale "interdimensional participant / dimensional traveler" defaults
+    let modified = false;
+    const sanitized = parsed.map((p) => {
+      if (
+        p.details &&
+        (p.details.includes('interdimensional participant') ||
+          p.details.includes('traversing anime verses') ||
+          p.details.includes('Dimensional traveler awakened in this verse'))
+      ) {
+        modified = true;
+        return { ...p, details: '' };
+      }
+      return p;
+    });
+
+    if (modified) {
+      saveStoredPersonas(sanitized);
+      return sanitized;
+    }
+
     return parsed;
   } catch (err) {
     console.error('Failed to parse personas from localStorage:', err);
@@ -80,7 +101,23 @@ export function saveStoredPersonas(personas) {
     localStorage.setItem(STORAGE_KEY_PERSONAS, JSON.stringify(personas));
     window.dispatchEvent(new Event('persona_storage_updated'));
   } catch (err) {
-    console.error('Failed to save personas to localStorage:', err);
+    console.warn('[PersonaStorage] LocalStorage setItem warning (checking quota):', err.message);
+
+    // If quota exceeded, strip heavy uncompressed base64 avatars and re-save
+    try {
+      const lightweight = personas.map((p) => {
+        if (p.avatar && p.avatar.length > 50000 && p.avatar.startsWith('data:image')) {
+          // Truncate overly massive base64 image strings to recover space for moves
+          return { ...p, avatar: '' };
+        }
+        return p;
+      });
+      localStorage.setItem(STORAGE_KEY_PERSONAS, JSON.stringify(lightweight));
+      window.dispatchEvent(new Event('persona_storage_updated'));
+      console.log('[PersonaStorage] Successfully salvaged personas storage after quota relief.');
+    } catch (salvageErr) {
+      console.error('[PersonaStorage] Critical failed to save personas:', salvageErr);
+    }
   }
 }
 

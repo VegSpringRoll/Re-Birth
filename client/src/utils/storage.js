@@ -11,6 +11,8 @@ const STORAGE_KEYS = {
   MONGODB_CONFIG: 'rebirth_mongodb_config',
   API_PROFILES: 'rebirth_api_profiles_v1',
   ACTIVE_PROFILE_ID: 'rebirth_active_profile_id_v1',
+  SUMMARY_PROFILES: 'rebirth_summary_profiles_v1',
+  ACTIVE_SUMMARY_PROFILE_ID: 'rebirth_active_summary_profile_id_v1',
   CUSTOM_PROXY_URL: 'rebirth_custom_proxy_url',
 };
 
@@ -315,6 +317,40 @@ export function saveActiveApiProfileId(id) {
   try {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_PROFILE_ID, id);
     window.dispatchEvent(new Event('rebirth_api_profiles_updated'));
+  } catch (e) {}
+}
+
+export function getStoredSummaryProfiles() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SUMMARY_PROFILES);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveStoredSummaryProfiles(profiles) {
+  try {
+    const clean = Array.isArray(profiles) ? profiles.filter(Boolean) : [];
+    localStorage.setItem(STORAGE_KEYS.SUMMARY_PROFILES, JSON.stringify(clean));
+    window.dispatchEvent(new Event('rebirth_summary_profiles_updated'));
+  } catch (e) {}
+}
+
+export function getActiveSummaryProfileId() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.ACTIVE_SUMMARY_PROFILE_ID) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+export function saveActiveSummaryProfileId(id) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_SUMMARY_PROFILE_ID, id);
+    window.dispatchEvent(new Event('rebirth_summary_profiles_updated'));
   } catch (e) {}
 }
 

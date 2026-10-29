@@ -44,6 +44,10 @@ import {
   saveStoredApiProfiles,
   getActiveApiProfileId,
   saveActiveApiProfileId,
+  getStoredSummaryProfiles,
+  saveStoredSummaryProfiles,
+  getActiveSummaryProfileId,
+  saveActiveSummaryProfileId,
   getStoredCustomProxyUrl,
   saveStoredCustomProxyUrl,
   saveByokToMongoDB,
@@ -201,6 +205,109 @@ export default function RightDrawer({
   const [isTestingSummary, setIsTestingSummary] = useState(false);
   const [summaryTestResult, setSummaryTestResult] = useState(null);
   const [summarySavedToast, setSummarySavedToast] = useState(false);
+
+  // Summarizer Saved Profiles state
+  const [summaryProfiles, setSummaryProfiles] = useState(getStoredSummaryProfiles());
+  const [activeSummaryProfileId, setActiveSummaryProfileId] = useState(getActiveSummaryProfileId());
+  const [isCreatingSummaryProfile, setIsCreatingSummaryProfile] = useState(false);
+  const [summaryProfileNameInput, setSummaryProfileNameInput] = useState('');
+  const [summaryProfileToast, setSummaryProfileToast] = useState('');
+
+  const handleSelectSummaryProfile = (profileId) => {
+    if (!profileId) {
+      setActiveSummaryProfileId('');
+      saveActiveSummaryProfileId('');
+      return;
+    }
+    const prof = summaryProfiles.find((p) => p.id === profileId);
+    if (!prof) return;
+
+    setActiveSummaryProfileId(profileId);
+    saveActiveSummaryProfileId(profileId);
+
+    const updatedConfig = {
+      ...summaryConfig,
+      provider: prof.provider || 'openai',
+      model: prof.model || '',
+      apiKey: prof.apiKey || '',
+      customBaseUrl: prof.customBaseUrl || '',
+      enabled: prof.enabled !== false,
+    };
+
+    setSummaryConfig(updatedConfig);
+    saveStoredSummaryConfig(updatedConfig);
+    setUsePrimarySummaryKey(!prof.apiKey);
+    if (prof.customBaseUrl) setSummaryCustomBaseUrl(prof.customBaseUrl);
+
+    setSummaryProfileToast(`Loaded profile: ${prof.name}`);
+    setTimeout(() => setSummaryProfileToast(''), 2500);
+  };
+
+  const handleSaveCurrentAsSummaryProfile = () => {
+    const profProvider = summaryConfig.provider || 'openai';
+    const profModel = summaryConfig.model || 'Default';
+    const cleanName = summaryProfileNameInput.trim() || `${profProvider.toUpperCase()} - ${profModel}`;
+
+    const newProfile = {
+      id: `summary_prof_${Date.now()}`,
+      name: cleanName,
+      provider: profProvider,
+      model: summaryConfig.model || '',
+      apiKey: summaryConfig.apiKey || '',
+      customBaseUrl: summaryConfig.customBaseUrl || summaryCustomBaseUrl || '',
+      enabled: summaryConfig.enabled !== false,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedList = [newProfile, ...summaryProfiles.filter((p) => p.name !== cleanName)];
+    setSummaryProfiles(updatedList);
+    saveStoredSummaryProfiles(updatedList);
+    setActiveSummaryProfileId(newProfile.id);
+    saveActiveSummaryProfileId(newProfile.id);
+
+    setSummaryProfileNameInput('');
+    setIsCreatingSummaryProfile(false);
+    setSummaryProfileToast(`Saved profile: ${cleanName}`);
+    setTimeout(() => setSummaryProfileToast(''), 2500);
+  };
+
+  const handleUpdateActiveSummaryProfile = () => {
+    if (!activeSummaryProfileId) return;
+    const prof = summaryProfiles.find((p) => p.id === activeSummaryProfileId);
+    if (!prof) return;
+
+    const updated = summaryProfiles.map((p) => {
+      if (p.id === activeSummaryProfileId) {
+        return {
+          ...p,
+          provider: summaryConfig.provider || 'openai',
+          model: summaryConfig.model || '',
+          apiKey: summaryConfig.apiKey || '',
+          customBaseUrl: summaryConfig.customBaseUrl || summaryCustomBaseUrl || '',
+          enabled: summaryConfig.enabled !== false,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      return p;
+    });
+
+    setSummaryProfiles(updated);
+    saveStoredSummaryProfiles(updated);
+    setSummaryProfileToast(`Updated profile: ${prof.name}`);
+    setTimeout(() => setSummaryProfileToast(''), 2500);
+  };
+
+  const handleDeleteSummaryProfile = (profileIdToDelete) => {
+    const updated = summaryProfiles.filter((p) => p.id !== profileIdToDelete);
+    setSummaryProfiles(updated);
+    saveStoredSummaryProfiles(updated);
+    if (activeSummaryProfileId === profileIdToDelete) {
+      setActiveSummaryProfileId('');
+      saveActiveSummaryProfileId('');
+    }
+    setSummaryProfileToast('Deleted profile');
+    setTimeout(() => setSummaryProfileToast(''), 2500);
+  };
 
   const filteredSummaryModels = summaryAvailableModels.filter((m) => {
     if (!summarySearchQuery) return true;
@@ -1222,6 +1329,100 @@ export default function RightDrawer({
                 onChange={(e) => setSummaryConfig({ ...summaryConfig, enabled: e.target.checked })}
                 className="w-4 h-4 accent-purple-500 rounded cursor-pointer shrink-0"
               />
+            </div>
+
+            {/* SAVED SUMMARIZER PROFILES (IDENTICAL TO BYOK) */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900/90 via-purple-950/30 to-slate-900/90 border border-purple-500/30 space-y-3.5 shadow-md">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <label className="text-xs font-semibold text-purple-300 uppercase font-mono tracking-wider flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Saved Summarizer Profiles ({summaryProfiles.length})</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingSummaryProfile(!isCreatingSummaryProfile)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-purple-300 hover:text-white bg-purple-950/60 hover:bg-purple-900/80 px-2.5 py-1 rounded-xl border border-purple-700/50 transition-colors cursor-pointer active:scale-95"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>{isCreatingSummaryProfile ? 'Cancel' : 'Save As Profile'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Profile Selector Dropdown */}
+              <div className="space-y-1.5">
+                <select
+                  value={activeSummaryProfileId}
+                  onChange={(e) => handleSelectSummaryProfile(e.target.value)}
+                  className="w-full bg-slate-950 border border-purple-500/40 rounded-xl px-3.5 py-2.5 text-base sm:text-xs text-purple-200 focus:outline-none focus:border-cyan-400 font-sans"
+                >
+                  <option value="">
+                    {summaryProfiles.length === 0 ? '-- No saved summarizer profiles yet (Click "+ Save As Profile") --' : '-- Select Saved Profile / Switch Summarizer --'}
+                  </option>
+                  {summaryProfiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.provider.toUpperCase()} &bull; {p.model || 'Default'})
+                    </option>
+                  ))}
+                </select>
+
+                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
+                  <span>Switch summarizer credentials, provider &amp; model instantly.</span>
+                  {activeSummaryProfileId && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleUpdateActiveSummaryProfile}
+                        className="text-purple-300 hover:text-white underline cursor-pointer"
+                        title="Update profile with current key & model"
+                      >
+                        Update
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSummaryProfile(activeSummaryProfileId)}
+                        className="text-rose-400 hover:text-rose-300 underline cursor-pointer"
+                        title="Delete selected profile"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Save New Profile Drawer */}
+              {isCreatingSummaryProfile && (
+                <div className="p-3 rounded-xl bg-black/60 border border-purple-500/30 space-y-2 animate-fade-in">
+                  <label className="text-[10px] font-mono uppercase text-slate-300 block">
+                    Summarizer Profile Name
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder={`e.g. Fast Groq Summarizer`}
+                      value={summaryProfileNameInput}
+                      onChange={(e) => setSummaryProfileNameInput(e.target.value)}
+                      className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-3 py-1.5 text-base sm:text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveCurrentAsSummaryProfile}
+                      className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs tracking-wider uppercase transition-colors shrink-0 cursor-pointer"
+                    >
+                      Save Profile
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {summaryProfileToast && (
+                <div className="p-2 rounded-xl bg-purple-950/80 border border-purple-500/40 text-purple-200 text-xs font-mono flex items-center gap-1.5 animate-fade-in">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{summaryProfileToast}</span>
+                </div>
+              )}
             </div>
 
             {/* Summarizer Provider Card */}
