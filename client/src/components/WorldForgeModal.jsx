@@ -59,6 +59,40 @@ You are an immersive simulation engine for the ${worldName} anime verse. You con
 </continuity>`;
 }
 
+export async function compressAvatarDataUrl(dataUrl, maxDim = 512) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image') || dataUrl.length < 200000) {
+    return dataUrl;
+  }
+  return new Promise((resolve) => {
+    try {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    } catch (e) {
+      resolve(dataUrl);
+    }
+  });
+}
+
 export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenPersonaModal, onOpenKeyManager }) {
   const [step, setStep] = useState('select'); // 'select' | 'briefing'
   const [presets, setPresets] = useState([]);
@@ -378,9 +412,12 @@ export default function WorldForgeModal({ isOpen, onClose, onForgeRealm, onOpenP
       const activePrompt = (scenarioPrompt || '').trim() || `I step through the dimensional boundary and materialize into ${activeLocation}.`;
 
       const currentPersona = savedPersonas.find((p) => p.id === selectedPersonaId) || savedPersonas[0];
+      const rawAvatar = currentPersona?.avatar || '';
+      const optimizedAvatar = await compressAvatarDataUrl(rawAvatar);
+
       const userProfile = {
         name: currentPersona?.name || characterName || 'Protagonist',
-        avatar: currentPersona?.avatar || '',
+        avatar: optimizedAvatar,
         gender: currentPersona?.gender || 'Male',
         physique: currentPersona?.physique || 'Athletic silhouette, combat attire',
         traits: currentPersona?.traits || characterConcept || 'Resolute, perceptive',

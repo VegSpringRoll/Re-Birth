@@ -58,15 +58,41 @@ export default function PersonaModal({
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      alert('Image file is too large. Please select an image under 8MB.');
+    if (file.size > 15 * 1024 * 1024) {
+      alert('Image file is too large. Please select an image under 15MB.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result;
       if (typeof dataUrl === 'string') {
-        setAvatar(dataUrl);
+        // Optimize and compress avatar to crisp 512x512 JPEG to prevent mobile 413 and lag
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 512;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL('image/jpeg', 0.85);
+          setAvatar(compressed);
+        };
+        img.onerror = () => {
+          setAvatar(dataUrl);
+        };
+        img.src = dataUrl;
       }
     };
     reader.readAsDataURL(file);
